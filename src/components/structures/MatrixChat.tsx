@@ -435,32 +435,7 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
     }
 
     private onWindowResized = (): void => {
-        // XXX: This is a very unreliable way to detect whether or not the the devtools are open
-        this.warnInConsole();
     };
-
-    private warnInConsole = throttle((): void => {
-        const largeFontSize = "50px";
-        const normalFontSize = "15px";
-
-        const waitText = _t("Wait!");
-        const scamText = _t(
-            "If someone told you to copy/paste something here, " + "there is a high likelihood you're being scammed!",
-        );
-        const devText = _t(
-            "If you know what you're doing, Element is open-source, " +
-                "be sure to check out our GitHub (https://github.com/vector-im/element-web/) " +
-                "and contribute!",
-        );
-
-        global.mx_rage_logger.bypassRageshake(
-            "log",
-            `%c${waitText}\n%c${scamText}\n%c${devText}`,
-            `font-size:${largeFontSize}; color:blue;`,
-            `font-size:${normalFontSize}; color:red;`,
-            `font-size:${normalFontSize};`,
-        );
-    }, 1000);
 
     private getFallbackHsUrl(): string | undefined {
         if (this.getServerProperties().serverConfig?.isDefault) {
