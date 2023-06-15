@@ -214,7 +214,6 @@ export class RoomViewStore extends EventEmitter {
                 this.viewThread(payload as ThreadPayload);
                 break;
             // for these events blank out the roomId as we are no longer in the RoomView
-            case "view_welcome_page":
             case Action.ViewHomePage:
                 this.setState({
                     roomId: null,

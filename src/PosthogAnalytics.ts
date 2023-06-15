@@ -69,7 +69,6 @@ export enum Anonymity {
 const whitelistedScreens = new Set([
     "register",
     "login",
-    "forgot_password",
     "soft_logout",
     "new",
     "settings",

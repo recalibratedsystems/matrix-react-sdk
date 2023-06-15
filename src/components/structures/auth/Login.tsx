@@ -72,7 +72,6 @@ interface IProps {
 
     // login shouldn't know or care how registration, password recovery, etc is done.
     onRegisterClick(): void;
-    onForgotPasswordClick?(): void;
     onServerConfigChange(config: ValidatedServerConfig): void;
 }
 
@@ -439,7 +438,6 @@ export default class LoginComponent extends React.PureComponent<IProps, IState> 
                 onUsernameBlur={this.onUsernameBlur}
                 onPhoneCountryChanged={this.onPhoneCountryChanged}
                 onPhoneNumberChanged={this.onPhoneNumberChanged}
-                onForgotPasswordClick={this.props.onForgotPasswordClick}
                 loginIncorrect={this.state.loginIncorrect}
                 serverConfig={this.props.serverConfig}
                 disableSubmit={this.isBusy()}

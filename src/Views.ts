@@ -20,17 +20,11 @@ enum Views {
     // trying to re-animate a matrix client or register as a guest.
     LOADING,
 
-    // we are showing the welcome view
-    WELCOME,
-
     // we are showing the login view
     LOGIN,
 
     // we are showing the registration view
     REGISTER,
-
-    // showing the 'forgot password' view
-    FORGOT_PASSWORD,
 
     // showing flow to trust this new device with cross-signing
     COMPLETE_SECURITY,

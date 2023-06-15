@@ -138,10 +138,6 @@ export default class SoftLogout extends React.Component<IProps, IState> {
         this.setState({ password: ev.target.value });
     };
 
-    private onForgotPassword = (): void => {
-        dis.dispatch({ action: "start_password_recovery" });
-    };
-
     private onPasswordLogin = async (ev: SyntheticEvent): Promise<void> => {
         ev.preventDefault();
         ev.stopPropagation();
@@ -246,9 +242,6 @@ export default class SoftLogout extends React.Component<IProps, IState> {
                     disabled={this.state.busy}
                 >
                     {_t("Sign In")}
-                </AccessibleButton>
-                <AccessibleButton onClick={this.onForgotPassword} kind="link">
-                    {_t("Forgotten your password?")}
                 </AccessibleButton>
             </form>
         );

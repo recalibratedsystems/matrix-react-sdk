@@ -647,7 +647,7 @@ export default class Registration extends React.Component<IProps, IState> {
                                 onClick={async (event: ButtonEvent): Promise<void> => {
                                     const sessionLoaded = await this.onLoginClickWithCheck(event);
                                     if (sessionLoaded) {
-                                        dis.dispatch({ action: "view_welcome_page" });
+                                        dis.dispatch({ action: "start_login" });
                                     }
                                 }}
                             >

@@ -46,7 +46,6 @@ interface IProps {
     onUsernameBlur?(username: string): void;
     onPhoneCountryChanged?(phoneCountry: string): void;
     onPhoneNumberChanged?(phoneNumber: string): void;
-    onForgotPasswordClick?(): void;
 }
 
 interface IState {
@@ -89,12 +88,6 @@ export default class PasswordLogin extends React.PureComponent<IProps, IState> {
             password: "",
         };
     }
-
-    private onForgotPasswordClick = (ev: ButtonEvent): void => {
-        ev.preventDefault();
-        ev.stopPropagation();
-        this.props.onForgotPasswordClick?.();
-    };
 
     private onSubmitForm = async (ev: SyntheticEvent): Promise<void> => {
         ev.preventDefault();
@@ -369,19 +362,6 @@ export default class PasswordLogin extends React.PureComponent<IProps, IState> {
 
     public render(): React.ReactNode {
         let forgotPasswordJsx: JSX.Element | undefined;
-
-        if (this.props.onForgotPasswordClick) {
-            forgotPasswordJsx = (
-                <AccessibleButton
-                    className="mx_Login_forgot"
-                    disabled={this.props.busy}
-                    kind="link"
-                    onClick={this.onForgotPasswordClick}
-                >
-                    {_t("Forgot password?")}
-                </AccessibleButton>
-            );
-        }
 
         const pwFieldClass = classNames({
             error: this.props.loginIncorrect && !this.isLoginEmpty(), // only error password if error isn't top field

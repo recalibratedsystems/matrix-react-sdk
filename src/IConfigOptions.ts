@@ -65,7 +65,6 @@ export interface IConfigOptions {
     embedded_pages?: {
         welcome_url?: string;
         home_url?: string;
-        login_for_welcome?: boolean;
     };
 
     permalink_prefix?: string;

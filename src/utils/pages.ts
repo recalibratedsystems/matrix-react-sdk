@@ -46,9 +46,3 @@ export function getHomePageUrl(appConfig: IConfigOptions, matrixClient: MatrixCl
 
     return pageUrl;
 }
-
-export function shouldUseLoginForWelcome(appConfig: IConfigOptions): boolean {
-    const config = new SnakedObject(appConfig);
-    const pagesConfig = config.get("embedded_pages");
-    return pagesConfig ? new SnakedObject(pagesConfig).get("login_for_welcome") === true : false;
-}

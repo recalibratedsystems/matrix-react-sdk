@@ -56,14 +56,13 @@ import "../../stores/LifecycleStore";
 import "../../stores/AutoRageshakeStore";
 import PageType from "../../PageTypes";
 import createRoom, { IOpts } from "../../createRoom";
-import { _t, _td, getCurrentLanguage } from "../../languageHandler";
+import { _t, _td } from "../../languageHandler";
 import SettingsStore from "../../settings/SettingsStore";
 import ThemeController from "../../settings/controllers/ThemeController";
 import { startAnyRegistrationFlow } from "../../Registration";
 import { messageForSyncError } from "../../utils/ErrorUtils";
 import ResizeNotifier from "../../utils/ResizeNotifier";
 import AutoDiscoveryUtils from "../../utils/AutoDiscoveryUtils";
-import DMRoomMap from "../../utils/DMRoomMap";
 import ThemeWatcher from "../../settings/watchers/ThemeWatcher";
 import { FontWatcher } from "../../settings/watchers/FontWatcher";
 import { storeRoomAliasInCache } from "../../RoomAliasCache";
@@ -85,7 +84,6 @@ import { SettingLevel } from "../../settings/SettingLevel";
 import ThreepidInviteStore, { IThreepidInvite, IThreepidInviteWireFormat } from "../../stores/ThreepidInviteStore";
 import { UIFeature } from "../../settings/UIFeature";
 import { showToast as showMobileGuideToast } from "../../toasts/MobileGuideToast";
-import { shouldUseLoginForWelcome } from "../../utils/pages";
 import RoomListStore from "../../stores/room-list/RoomListStore";
 import { RoomUpdateCause } from "../../stores/room-list/models";
 import SecurityCustomisations from "../../customisations/Security";
@@ -96,8 +94,6 @@ import CreateRoomDialog from "../views/dialogs/CreateRoomDialog";
 import KeySignatureUploadFailedDialog from "../views/dialogs/KeySignatureUploadFailedDialog";
 import IncomingSasDialog from "../views/dialogs/IncomingSasDialog";
 import CompleteSecurity from "./auth/CompleteSecurity";
-import Welcome from "../views/auth/Welcome";
-import ForgotPassword from "./auth/ForgotPassword";
 import E2eSetup from "./auth/E2eSetup";
 import Registration from "./auth/Registration";
 import Login from "./auth/Login";
@@ -143,7 +139,7 @@ import { UserTab } from "../views/dialogs/UserTab";
 // legacy export
 export { default as Views } from "../../Views";
 
-const AUTH_SCREENS = ["register", "login", "forgot_password", "start_sso", "start_cas", "welcome"];
+const AUTH_SCREENS = ["register", "login", "start_sso", "start_cas", "welcome"];
 
 // Actions that are redirected through the onboarding process prior to being
 // re-dispatched. NOTE: some actions are non-trivial and would require
@@ -338,7 +334,7 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
                     return true;
                 }
 
-                if (firstScreen === "login" || firstScreen === "register" || firstScreen === "forgot_password") {
+                if (firstScreen === "login" || firstScreen === "register") {
                     this.showScreenAfterLogin();
                 }
 
@@ -496,7 +492,7 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
                     if (ThreepidInviteStore.instance.pickBestInvite()) {
                         dis.dispatch({ action: "start_registration" });
                     } else {
-                        dis.dispatch({ action: "view_welcome_page" });
+                        dis.dispatch({ action: "start_login" });
                     }
                 }
                 return loadedSession;
@@ -607,12 +603,6 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
                     this.screenAfterLogin = payload.screenAfterLogin;
                 }
                 this.viewLogin();
-                break;
-            case "start_password_recovery":
-                this.setStateForNewView({
-                    view: Views.FORGOT_PASSWORD,
-                });
-                this.notifyNewScreen("forgot_password");
                 break;
             case "start_chat":
                 createRoom(MatrixClientPeg.get(), {
@@ -729,9 +719,6 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
                 this.viewSomethingBehindModal();
                 break;
             }
-            case "view_welcome_page":
-                this.viewWelcome();
-                break;
             case Action.ViewHomePage:
                 this.viewHome(payload.justRegistered);
                 break;
@@ -982,24 +969,12 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
 
     private viewSomethingBehindModal(): void {
         if (this.state.view !== Views.LOGGED_IN) {
-            this.viewWelcome();
+            this.viewLogin();
             return;
         }
         if (!this.state.currentRoomId && !this.state.currentUserId) {
             this.viewHome();
         }
-    }
-
-    private viewWelcome(): void {
-        if (shouldUseLoginForWelcome(SdkConfig.get())) {
-            return this.viewLogin();
-        }
-        this.setStateForNewView({
-            view: Views.WELCOME,
-        });
-        this.notifyNewScreen("welcome");
-        ThemeController.isLogin = true;
-        this.themeWatcher.recheck();
     }
 
     private viewLogin(otherState?: any): void {
@@ -1068,11 +1043,6 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
             });
             dis.dispatch({
                 action: "require_registration",
-                // If the set_mxid dialog is cancelled, view /welcome because if the
-                // browser was pointing at /user/@someone:domain?action=chat, the URL
-                // needs to be reset so that they can revisit /user/.. // (and trigger
-                // `_chatCreateOrReuse` again)
-                go_welcome_on_cancel: true,
                 screen_after: {
                     screen: `user/undefined`,
                     params: { action: "chat" },
@@ -1341,7 +1311,7 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
             this.viewLastRoom();
         } else {
             if (MatrixClientPeg.get().isGuest()) {
-                dis.dispatch({ action: "view_welcome_page" });
+                dis.dispatch({ action: "start_login" });
             } else {
                 dis.dispatch({ action: Action.ViewHomePage });
             }
@@ -1653,11 +1623,6 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
                 params: params,
             });
             PerformanceMonitor.instance.start(PerformanceEntryNames.LOGIN);
-        } else if (screen === "forgot_password") {
-            dis.dispatch({
-                action: "start_password_recovery",
-                params: params,
-            });
         } else if (screen === "soft_logout") {
             if (cli.getUserId() && !Lifecycle.isSoftLogout()) {
                 // Logged in - visit a room
@@ -1679,10 +1644,6 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
             });
         } else if (screen === "settings") {
             dis.fire(Action.ViewUserSettings);
-        } else if (screen === "welcome") {
-            dis.dispatch({
-                action: "view_welcome_page",
-            });
         } else if (screen === "home") {
             dis.dispatch({
                 action: Action.ViewHomePage,
@@ -1834,10 +1795,6 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
 
     private onLoginClick = (): void => {
         this.showScreen("login");
-    };
-
-    private onForgotPasswordClick = (): void => {
-        this.showScreen("forgot_password");
     };
 
     private onRegisterFlowComplete = (credentials: IMatrixClientCreds, password: string): Promise<void> => {
@@ -2007,8 +1964,6 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
                     </div>
                 );
             }
-        } else if (this.state.view === Views.WELCOME) {
-            view = <Welcome />;
         } else if (this.state.view === Views.REGISTER && SettingsStore.getValue(UIFeature.Registration)) {
             const email = ThreepidInviteStore.instance.pickBestInvite()?.toEmail;
             view = (
@@ -2027,16 +1982,7 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
                     {...this.getServerProperties()}
                 />
             );
-        } else if (this.state.view === Views.FORGOT_PASSWORD && SettingsStore.getValue(UIFeature.PasswordReset)) {
-            view = (
-                <ForgotPassword
-                    onComplete={this.onLoginClick}
-                    onLoginClick={this.onLoginClick}
-                    {...this.getServerProperties()}
-                />
-            );
         } else if (this.state.view === Views.LOGIN) {
-            const showPasswordReset = SettingsStore.getValue(UIFeature.PasswordReset);
             view = (
                 <Login
                     isSyncing={this.state.pendingInitialSync}
@@ -2044,7 +1990,6 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
                     onRegisterClick={this.onRegisterClick}
                     fallbackHsUrl={this.getFallbackHsUrl()}
                     defaultDeviceDisplayName={this.props.defaultDeviceDisplayName}
-                    onForgotPasswordClick={showPasswordReset ? this.onForgotPasswordClick : undefined}
                     onServerConfigChange={this.onServerConfigChange}
                     fragmentAfterLogin={fragmentAfterLogin}
                     defaultUsername={this.props.startingFragmentQueryParams?.defaultUsername as string | undefined}

@@ -41,14 +41,12 @@ export const SAFE_LOCALPART_REGEX = /^[a-z0-9=_\-./]+$/;
  * @param {object} options
  * @param {bool} options.go_home_on_cancel
  *     If true, goes to the home page if the user cancels the action
- * @param {bool} options.go_welcome_on_cancel
- *     If true, goes to the welcome page if the user cancels the action
  * @param {bool} options.screen_after
  *     If present the screen to redirect to after a successful login or register.
  */
 export async function startAnyRegistrationFlow(
     // eslint-disable-next-line camelcase
-    options: { go_home_on_cancel?: boolean; go_welcome_on_cancel?: boolean; screen_after?: boolean } = {},
+    options: { go_home_on_cancel?: boolean; screen_after?: boolean } = {},
 ): Promise<void> {
     const modal = Modal.createDialog(QuestionDialog, {
         hasCancelButton: true,
@@ -76,8 +74,6 @@ export async function startAnyRegistrationFlow(
                 dis.dispatch({ action: "start_login", screenAfterLogin: options.screen_after });
             } else if (options.go_home_on_cancel) {
                 dis.dispatch({ action: Action.ViewHomePage });
-            } else if (options.go_welcome_on_cancel) {
-                dis.dispatch({ action: "view_welcome_page" });
             }
         },
     });
