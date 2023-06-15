@@ -15,7 +15,6 @@ limitations under the License.
 */
 
 import { Optional } from "matrix-events-sdk";
-import { MatrixCall } from "matrix-js-sdk/src/webrtc/call";
 
 import { ActionPayload } from "../payloads";
 import { Action } from "../actions";
@@ -27,7 +26,6 @@ export interface OpenInviteDialogPayload extends ActionPayload {
     kind: InviteKind;
     onFinishedCallback: Optional<(results: boolean[]) => void>;
 
-    call?: MatrixCall;
     roomId?: string;
 
     analyticsName: string;

@@ -136,8 +136,6 @@ export interface IConfigOptions {
         admin_message_md: string; // message for how to contact the server owner when reporting an event
     };
 
-    welcome_user_id?: string;
-
     room_directory?: {
         servers: string[];
     };
@@ -151,7 +149,6 @@ export interface IConfigOptions {
 
     enable_presence_by_hs_url?: Record<string, boolean>; // <HomeserverName, Enabled>
 
-    terms_and_conditions_links?: { url: string; text: string }[];
     help_url: string;
     help_encryption_url: string;
 

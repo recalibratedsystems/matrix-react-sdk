@@ -52,7 +52,6 @@ import { RoomPermalinkCreator } from "../../utils/permalinks/Permalinks";
 import Spinner from "../views/elements/Spinner";
 import EditorStateTransfer from "../../utils/EditorStateTransfer";
 import ErrorDialog from "../views/dialogs/ErrorDialog";
-import LegacyCallEventGrouper, { buildLegacyCallEventGroupers } from "./LegacyCallEventGrouper";
 import { ViewRoomPayload } from "../../dispatcher/payloads/ViewRoomPayload";
 import { getKeyBindingsManager } from "../../KeyBindingsManager";
 import { KeyBindingAction } from "../../accessibility/KeyboardShortcuts";
@@ -259,8 +258,6 @@ class TimelinePanel extends React.Component<IProps, IState> {
     private readReceiptActivityTimer: Timer | null = null;
     private readMarkerActivityTimer: Timer | null = null;
 
-    // A map of <callId, LegacyCallEventGrouper>
-    private callEventGroupers = new Map<string, LegacyCallEventGrouper>();
     private initialReadMarkerId: string | null = null;
 
     public constructor(props: IProps, context: React.ContextType<typeof RoomContext>) {
@@ -557,7 +554,6 @@ class TimelinePanel extends React.Component<IProps, IState> {
         }
 
         const { events, liveEvents, firstVisibleEventIndex } = this.getEvents();
-        this.buildLegacyCallEventGroupers(events);
         this.setState({
             events,
             liveEvents,
@@ -623,7 +619,6 @@ class TimelinePanel extends React.Component<IProps, IState> {
             debuglog("paginate complete backwards:" + backwards + "; success:" + r);
 
             const { events, liveEvents, firstVisibleEventIndex } = this.getEvents();
-            this.buildLegacyCallEventGroupers(events);
             const newState: Partial<IState> = {
                 [paginatingKey]: false,
                 [canPaginateKey]: r,
@@ -769,7 +764,6 @@ class TimelinePanel extends React.Component<IProps, IState> {
                 }
 
                 const { events, liveEvents, firstVisibleEventIndex } = this.getEvents();
-                this.buildLegacyCallEventGroupers(events);
                 const lastLiveEvent = liveEvents[liveEvents.length - 1];
 
                 const updatedState: Partial<IState> = {
@@ -961,7 +955,6 @@ class TimelinePanel extends React.Component<IProps, IState> {
         // TODO: We should restrict this to only events in our timeline,
         // but possibly the event tile itself should just update when this
         // happens to save us re-rendering the whole timeline.
-        this.buildLegacyCallEventGroupers(this.state.events);
         this.forceUpdate();
     };
 
@@ -1679,7 +1672,6 @@ class TimelinePanel extends React.Component<IProps, IState> {
                 await this.extendOverlayWindowToCoverMainWindow();
             }
         });
-        this.buildLegacyCallEventGroupers();
         this.setState({
             events: [],
             liveEvents: [],
@@ -1699,7 +1691,6 @@ class TimelinePanel extends React.Component<IProps, IState> {
         if (this.unmounted) return;
 
         const state = this.getEvents();
-        this.buildLegacyCallEventGroupers(state.events);
         this.setState(state);
     }
 
@@ -2057,10 +2048,6 @@ class TimelinePanel extends React.Component<IProps, IState> {
     ): Relations | undefined =>
         this.props.timelineSet.relations?.getChildEventsForEvent(eventId, relationType, eventType);
 
-    private buildLegacyCallEventGroupers(events?: MatrixEvent[]): void {
-        this.callEventGroupers = buildLegacyCallEventGroupers(this.callEventGroupers, events);
-    }
-
     public render(): React.ReactNode {
         // just show a spinner while the timeline loads.
         //
@@ -2140,7 +2127,6 @@ class TimelinePanel extends React.Component<IProps, IState> {
                 layout={this.props.layout}
                 hideThreadedMessages={this.props.hideThreadedMessages}
                 disableGrouping={this.props.disableGrouping}
-                callEventGroupers={this.callEventGroupers}
             />
         );
     }

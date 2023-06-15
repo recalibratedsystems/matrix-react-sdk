@@ -218,7 +218,6 @@ export function createTestClient(): MatrixClient {
         doesServerSupportLogoutDevices: jest.fn().mockReturnValue(true),
         requestPasswordEmailToken: jest.fn().mockRejectedValue({}),
         setPassword: jest.fn().mockRejectedValue({}),
-        groupCallEventHandler: { groupCalls: new Map<string, GroupCall>() },
         redactEvent: jest.fn(),
 
         createMessagesRequest: jest.fn().mockResolvedValue({

@@ -44,11 +44,9 @@ import ToastStore from "./stores/ToastStore";
 import { IntegrationManagers } from "./integrations/IntegrationManagers";
 import { Mjolnir } from "./mjolnir/Mjolnir";
 import DeviceListener from "./DeviceListener";
-import { Jitsi } from "./widgets/Jitsi";
 import { SSO_HOMESERVER_URL_KEY, SSO_ID_SERVER_URL_KEY, SSO_IDP_ID_KEY } from "./BasePlatform";
 import ThreepidInviteStore from "./stores/ThreepidInviteStore";
 import { PosthogAnalytics } from "./PosthogAnalytics";
-import LegacyCallHandler from "./LegacyCallHandler";
 import LifecycleCustomisations from "./customisations/Lifecycle";
 import ErrorDialog from "./components/views/dialogs/ErrorDialog";
 import { _t } from "./languageHandler";
@@ -803,7 +801,6 @@ async function startMatrixClient(client: MatrixClient, startSyncing = true): Pro
     DMRoomMap.makeShared(client).start();
     IntegrationManagers.sharedInstance().startWatching();
     ActiveWidgetStore.instance.start();
-    LegacyCallHandler.instance.start();
 
     // Start Mjolnir even though we haven't checked the feature flag yet. Starting
     // the thing just wastes CPU cycles, but should result in no actual functionality
@@ -831,9 +828,6 @@ async function startMatrixClient(client: MatrixClient, startSyncing = true): Pro
     if (!SettingsStore.getValue("lowBandwidth")) {
         Presence.start();
     }
-
-    // Now that we have a MatrixClientPeg, update the Jitsi info
-    Jitsi.getInstance().start();
 
     // dispatch that we finished starting up to wire up any other bits
     // of the matrix client that cannot be set prior to starting up.
@@ -923,7 +917,6 @@ async function clearStorage(opts?: { deleteEverything?: boolean }): Promise<void
  */
 export function stopMatrixClient(unsetClient = true): void {
     Notifier.stop();
-    LegacyCallHandler.instance.stop();
     UserActivity.sharedInstance().stop();
     SdkContextClass.instance.typingStore.reset();
     Presence.stop();

@@ -26,7 +26,6 @@ import { RoomMember } from "matrix-js-sdk/src/matrix";
 import RolesRoomSettingsTab from "../../../../../../src/components/views/settings/tabs/room/RolesRoomSettingsTab";
 import { mkStubRoom, withClientContextRenderOptions, stubClient } from "../../../../../test-utils";
 import { MatrixClientPeg } from "../../../../../../src/MatrixClientPeg";
-import { VoiceBroadcastInfoEventType } from "../../../../../../src/voice-broadcast";
 import SettingsStore from "../../../../../../src/settings/SettingsStore";
 import { ElementCall } from "../../../../../../src/models/Call";
 
@@ -84,22 +83,6 @@ describe("RolesRoomSettingsTab", () => {
 
     it("should initially show »Moderator« permission for »Voice broadcasts«", () => {
         expect(getVoiceBroadcastsSelectedOption().textContent).toBe("Moderator");
-    });
-
-    describe("when setting »Default« permission for »Voice broadcasts«", () => {
-        beforeEach(() => {
-            fireEvent.change(getVoiceBroadcastsSelect(), {
-                target: { value: 0 },
-            });
-        });
-
-        it("should update the power levels", () => {
-            expect(cli.sendStateEvent).toHaveBeenCalledWith(roomId, EventType.RoomPowerLevels, {
-                events: {
-                    [VoiceBroadcastInfoEventType]: 0,
-                },
-            });
-        });
     });
 
     describe("Element Call", () => {

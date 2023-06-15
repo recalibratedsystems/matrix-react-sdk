@@ -41,7 +41,6 @@ import { abbreviateUrl } from "./utils/UrlUtils";
 import { getDefaultIdentityServerUrl, setToDefaultIdentityServer } from "./utils/IdentityServerUtils";
 import { isPermalinkHost, parsePermalink } from "./utils/permalinks/Permalinks";
 import { WidgetType } from "./widgets/WidgetType";
-import { Jitsi } from "./widgets/Jitsi";
 import BugReportDialog from "./components/views/dialogs/BugReportDialog";
 import { ensureDMExists } from "./createRoom";
 import { ViewUserPayload } from "./dispatcher/payloads/ViewUserPayload";
@@ -51,7 +50,6 @@ import SdkConfig from "./SdkConfig";
 import SettingsStore from "./settings/SettingsStore";
 import { UIComponent, UIFeature } from "./settings/UIFeature";
 import { CHAT_EFFECTS } from "./effects";
-import LegacyCallHandler from "./LegacyCallHandler";
 import { guessAndSetDMRoom } from "./Rooms";
 import { upgradeRoom } from "./utils/RoomUpgrade";
 import UploadConfirmDialog from "./components/views/dialogs/UploadConfirmDialog";
@@ -64,7 +62,6 @@ import { TimelineRenderingType } from "./contexts/RoomContext";
 import { XOR } from "./@types/common";
 import { PosthogAnalytics } from "./PosthogAnalytics";
 import { ViewRoomPayload } from "./dispatcher/payloads/ViewRoomPayload";
-import VoipUserMapper from "./VoipUserMapper";
 import { htmlSerializeFromMdIfNeeded } from "./editor/serialize";
 import { leaveRoomBehaviour } from "./utils/leave-behaviour";
 import { isLocalRoom } from "./utils/localRoom/isLocalRoom";
@@ -999,16 +996,6 @@ export const Commands = [
                 let name = "Custom";
                 let data = {};
 
-                // Make the widget a Jitsi widget if it looks like a Jitsi widget
-                const jitsiData = Jitsi.getInstance().parsePreferredConferenceUrl(widgetUrl);
-                if (jitsiData) {
-                    logger.log("Making /addwidget widget a Jitsi conference");
-                    type = WidgetType.JITSI;
-                    name = "Jitsi";
-                    data = jitsiData;
-                    widgetUrl = WidgetUtils.getLocalJitsiWrapperUrl();
-                }
-
                 return success(WidgetUtils.setRoomWidget(cli, roomId, widgetId, type, widgetUrl, name, data));
             } else {
                 return reject(new UserFriendlyError("You cannot modify widgets in this room."));
@@ -1204,49 +1191,17 @@ export const Commands = [
         category: CommandCategories.advanced,
     }),
     new Command({
-        command: "tovirtual",
-        description: _td("Switches to this room's virtual room, if it has one"),
-        category: CommandCategories.advanced,
-        isEnabled(cli): boolean {
-            return !!LegacyCallHandler.instance.getSupportsVirtualRooms() && !isCurrentLocalRoom(cli);
-        },
-        runFn: (cli, roomId) => {
-            return success(
-                (async (): Promise<void> => {
-                    const room = await VoipUserMapper.sharedInstance().getVirtualRoomForRoom(roomId);
-                    if (!room) throw new UserFriendlyError("No virtual room for this room");
-                    dis.dispatch<ViewRoomPayload>({
-                        action: Action.ViewRoom,
-                        room_id: room.roomId,
-                        metricsTrigger: "SlashCommand",
-                        metricsViaKeyboard: true,
-                    });
-                })(),
-            );
-        },
-    }),
-    new Command({
         command: "query",
         description: _td("Opens chat with the given user"),
         args: "<user-id>",
         runFn: function (cli, roomId, userId) {
             // easter-egg for now: look up phone numbers through the thirdparty API
-            // (very dumb phone number detection...)
-            const isPhoneNumber = userId && /^\+?[0123456789]+$/.test(userId);
-            if (!userId || ((!userId.startsWith("@") || !userId.includes(":")) && !isPhoneNumber)) {
+            if (!userId || ((!userId.startsWith("@") || !userId.includes(":")))) {
                 return reject(this.getUsage());
             }
 
             return success(
                 (async (): Promise<void> => {
-                    if (isPhoneNumber) {
-                        const results = await LegacyCallHandler.instance.pstnLookup(userId);
-                        if (!results || results.length === 0 || !results[0].userid) {
-                            throw new UserFriendlyError("Unable to find Matrix ID for phone number");
-                        }
-                        userId = results[0].userid;
-                    }
-
                     const roomId = await ensureDMExists(cli, userId);
                     if (!roomId) throw new Error("Failed to ensure DM exists");
 
@@ -1295,36 +1250,6 @@ export const Commands = [
             return reject(this.getUsage());
         },
         category: CommandCategories.actions,
-    }),
-    new Command({
-        command: "holdcall",
-        description: _td("Places the call in the current room on hold"),
-        category: CommandCategories.other,
-        isEnabled: (cli) => !isCurrentLocalRoom(cli),
-        runFn: function (cli, roomId, args) {
-            const call = LegacyCallHandler.instance.getCallForRoom(roomId);
-            if (!call) {
-                return reject(new UserFriendlyError("No active call in this room"));
-            }
-            call.setRemoteOnHold(true);
-            return success();
-        },
-        renderingTypes: [TimelineRenderingType.Room],
-    }),
-    new Command({
-        command: "unholdcall",
-        description: _td("Takes the call in the current room off hold"),
-        category: CommandCategories.other,
-        isEnabled: (cli) => !isCurrentLocalRoom(cli),
-        runFn: function (cli, roomId, args) {
-            const call = LegacyCallHandler.instance.getCallForRoom(roomId);
-            if (!call) {
-                return reject(new UserFriendlyError("No active call in this room"));
-            }
-            call.setRemoteOnHold(false);
-            return success();
-        },
-        renderingTypes: [TimelineRenderingType.Room],
     }),
     new Command({
         command: "converttodm",

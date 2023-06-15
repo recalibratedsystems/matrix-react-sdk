@@ -23,8 +23,7 @@ import { IContent, MatrixClient } from "matrix-js-sdk/src/matrix";
 import SettingsStore from "../settings/SettingsStore";
 import { haveRendererForEvent, JitsiEventFactory, JSONEventFactory, pickFactory } from "../events/EventTileFactory";
 import { getMessageModerationState, isLocationEvent, MessageModerationState } from "./EventUtils";
-import { ElementCall } from "../models/Call";
-import { VoiceBroadcastInfoEventType, VoiceBroadcastInfoState } from "../voice-broadcast";
+
 
 const calcIsInfoMessage = (
     eventType: EventType | string,
@@ -41,8 +40,7 @@ const calcIsInfoMessage = (
         eventType !== EventType.RoomCreate &&
         !M_POLL_START.matches(eventType) &&
         !M_POLL_END.matches(eventType) &&
-        !M_BEACON_INFO.matches(eventType) &&
-        !(eventType === VoiceBroadcastInfoEventType && content?.state === VoiceBroadcastInfoState.Started)
+        !M_BEACON_INFO.matches(eventType)
     );
 };
 
@@ -86,16 +84,14 @@ export function getEventDisplayInfo(
         eventType === EventType.RoomCreate ||
         eventType === EventType.RoomEncryption ||
         factory === JitsiEventFactory;
-    const isLeftAlignedBubbleMessage =
-        !isBubbleMessage && (eventType === EventType.CallInvite || ElementCall.CALL_EVENT_TYPE.matches(eventType));
+    const isLeftAlignedBubbleMessage = false;
     let isInfoMessage = calcIsInfoMessage(eventType, content, isBubbleMessage, isLeftAlignedBubbleMessage);
     // Some non-info messages want to be rendered in the appropriate bubble column but without the bubble background
     const noBubbleEvent =
         (eventType === EventType.RoomMessage && msgtype === MsgType.Emote) ||
         M_POLL_START.matches(eventType) ||
         M_BEACON_INFO.matches(eventType) ||
-        isLocationEvent(mxEvent) ||
-        eventType === VoiceBroadcastInfoEventType;
+        isLocationEvent(mxEvent);
 
     // If we're showing hidden events in the timeline, we should use the
     // source tile when there's no regular tile for an event and also for

@@ -21,14 +21,11 @@ import { _t } from "../../../languageHandler";
 import AccessibleButton from "../elements/AccessibleButton";
 import SettingsStore from "../../../settings/SettingsStore";
 import { SettingLevel } from "../../../settings/SettingLevel";
-import Modal from "../../../Modal";
-import BetaFeedbackDialog from "../dialogs/BetaFeedbackDialog";
 import SdkConfig from "../../../SdkConfig";
 import SettingsFlag from "../elements/SettingsFlag";
 import { useFeatureEnabled } from "../../../hooks/useSettings";
 import InlineSpinner from "../elements/InlineSpinner";
 import AccessibleTooltipButton from "../elements/AccessibleTooltipButton";
-import { shouldShowFeedback } from "../../../utils/Feedback";
 
 // XXX: Keep this around for re-use in future Betas
 
@@ -75,21 +72,7 @@ const BetaCard: React.FC<IProps> = ({ title: titleOverride, featureId }) => {
     const [busy, setBusy] = useState(false);
     if (!info) return null; // Beta is invalid/disabled
 
-    const { title, caption, faq, image, feedbackLabel, feedbackSubheading, extraSettings, requiresRefresh } = info;
-
-    let feedbackButton;
-    if (value && feedbackLabel && feedbackSubheading && shouldShowFeedback()) {
-        feedbackButton = (
-            <AccessibleButton
-                onClick={() => {
-                    Modal.createDialog(BetaFeedbackDialog, { featureId });
-                }}
-                kind="primary"
-            >
-                {_t("Feedback")}
-            </AccessibleButton>
-        );
-    }
+    const { title, caption, faq, image, extraSettings, requiresRefresh } = info;
 
     let refreshWarning: string | undefined;
     if (requiresRefresh) {
@@ -118,7 +101,6 @@ const BetaCard: React.FC<IProps> = ({ title: titleOverride, featureId }) => {
                     </h3>
                     <div className="mx_BetaCard_caption">{caption()}</div>
                     <div className="mx_BetaCard_buttons">
-                        {feedbackButton}
                         <AccessibleButton
                             onClick={async (): Promise<void> => {
                                 setBusy(true);
@@ -132,7 +114,7 @@ const BetaCard: React.FC<IProps> = ({ title: titleOverride, featureId }) => {
                                     setBusy(false);
                                 }
                             }}
-                            kind={feedbackButton ? "primary_outline" : "primary"}
+                            kind={"primary"}
                             disabled={busy}
                         >
                             {content}

@@ -18,7 +18,6 @@ import { MatrixClient } from "matrix-js-sdk/src/matrix";
 import { createContext } from "react";
 
 import defaultDispatcher from "../dispatcher/dispatcher";
-import LegacyCallHandler from "../LegacyCallHandler";
 import { PosthogAnalytics } from "../PosthogAnalytics";
 import { SlidingSyncManager } from "../SlidingSyncManager";
 import { AccountPasswordStore } from "../stores/AccountPasswordStore";
@@ -32,11 +31,6 @@ import { UserProfilesStore } from "../stores/UserProfilesStore";
 import { WidgetLayoutStore } from "../stores/widgets/WidgetLayoutStore";
 import { WidgetPermissionStore } from "../stores/widgets/WidgetPermissionStore";
 import WidgetStore from "../stores/WidgetStore";
-import {
-    VoiceBroadcastPlaybacksStore,
-    VoiceBroadcastPreRecordingStore,
-    VoiceBroadcastRecordingsStore,
-} from "../voice-broadcast";
 
 // This context is available to components under MatrixChat,
 // the context must not be used by components outside a SdkContextClass tree.
@@ -73,11 +67,7 @@ export class SdkContextClass {
     protected _PosthogAnalytics?: PosthogAnalytics;
     protected _SlidingSyncManager?: SlidingSyncManager;
     protected _SpaceStore?: SpaceStoreClass;
-    protected _LegacyCallHandler?: LegacyCallHandler;
     protected _TypingStore?: TypingStore;
-    protected _VoiceBroadcastRecordingsStore?: VoiceBroadcastRecordingsStore;
-    protected _VoiceBroadcastPreRecordingStore?: VoiceBroadcastPreRecordingStore;
-    protected _VoiceBroadcastPlaybacksStore?: VoiceBroadcastPlaybacksStore;
     protected _AccountPasswordStore?: AccountPasswordStore;
     protected _UserProfilesStore?: UserProfilesStore;
 
@@ -89,12 +79,6 @@ export class SdkContextClass {
         this._RoomViewStore = this.roomViewStore;
     }
 
-    public get legacyCallHandler(): LegacyCallHandler {
-        if (!this._LegacyCallHandler) {
-            this._LegacyCallHandler = LegacyCallHandler.instance;
-        }
-        return this._LegacyCallHandler;
-    }
     public get rightPanelStore(): RightPanelStore {
         if (!this._RightPanelStore) {
             this._RightPanelStore = RightPanelStore.instance;
@@ -161,27 +145,6 @@ export class SdkContextClass {
             window.mxTypingStore = this._TypingStore;
         }
         return this._TypingStore;
-    }
-
-    public get voiceBroadcastRecordingsStore(): VoiceBroadcastRecordingsStore {
-        if (!this._VoiceBroadcastRecordingsStore) {
-            this._VoiceBroadcastRecordingsStore = new VoiceBroadcastRecordingsStore();
-        }
-        return this._VoiceBroadcastRecordingsStore;
-    }
-
-    public get voiceBroadcastPreRecordingStore(): VoiceBroadcastPreRecordingStore {
-        if (!this._VoiceBroadcastPreRecordingStore) {
-            this._VoiceBroadcastPreRecordingStore = new VoiceBroadcastPreRecordingStore();
-        }
-        return this._VoiceBroadcastPreRecordingStore;
-    }
-
-    public get voiceBroadcastPlaybacksStore(): VoiceBroadcastPlaybacksStore {
-        if (!this._VoiceBroadcastPlaybacksStore) {
-            this._VoiceBroadcastPlaybacksStore = new VoiceBroadcastPlaybacksStore(this.voiceBroadcastRecordingsStore);
-        }
-        return this._VoiceBroadcastPlaybacksStore;
     }
 
     public get accountPasswordStore(): AccountPasswordStore {

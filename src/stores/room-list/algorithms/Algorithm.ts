@@ -34,7 +34,6 @@ import { EffectiveMembership, getEffectiveMembership, splitRoomsByMembership } f
 import { OrderingAlgorithm } from "./list-ordering/OrderingAlgorithm";
 import { getListAlgorithmInstance } from "./list-ordering";
 import { VisibilityProvider } from "../filters/VisibilityProvider";
-import { CallStore, CallStoreEvent } from "../../CallStore";
 
 /**
  * Fired when the Algorithm has determined a list has been updated.
@@ -79,11 +78,9 @@ export class Algorithm extends EventEmitter {
     public updatesInhibited = false;
 
     public start(): void {
-        CallStore.instance.on(CallStoreEvent.ActiveCalls, this.onActiveCalls);
     }
 
     public stop(): void {
-        CallStore.instance.off(CallStoreEvent.ActiveCalls, this.onActiveCalls);
     }
 
     public get stickyRoom(): Room | null {
@@ -392,23 +389,6 @@ export class Algorithm extends EventEmitter {
                 this.recalculateActiveCallRooms(tagId);
             }
             return;
-        }
-
-        if (CallStore.instance.activeCalls.size) {
-            // We operate on the sticky rooms map
-            if (!this._cachedStickyRooms) this.initCachedStickyRooms();
-            const rooms = this._cachedStickyRooms![updatedTag];
-
-            const activeRoomIds = new Set([...CallStore.instance.activeCalls].map((call) => call.roomId));
-            const activeRooms: Room[] = [];
-            const inactiveRooms: Room[] = [];
-
-            for (const room of rooms) {
-                (activeRoomIds.has(room.roomId) ? activeRooms : inactiveRooms).push(room);
-            }
-
-            // Stick rooms with active calls to the top
-            this._cachedStickyRooms![updatedTag] = [...activeRooms, ...inactiveRooms];
         }
     }
 

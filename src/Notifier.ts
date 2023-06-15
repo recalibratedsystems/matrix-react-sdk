@@ -43,15 +43,8 @@ import { isPushNotifyDisabled } from "./settings/controllers/NotificationControl
 import UserActivity from "./UserActivity";
 import { mediaFromMxc } from "./customisations/Media";
 import ErrorDialog from "./components/views/dialogs/ErrorDialog";
-import LegacyCallHandler from "./LegacyCallHandler";
-import VoipUserMapper from "./VoipUserMapper";
 import { SdkContextClass } from "./contexts/SDKContext";
 import { localNotificationsAreSilenced, createLocalNotificationSettingsIfNeeded } from "./utils/notifications";
-import { getIncomingCallToastKey, IncomingCallToast } from "./toasts/IncomingCallToast";
-import ToastStore from "./stores/ToastStore";
-import { ElementCall } from "./models/Call";
-import { VoiceBroadcastChunkEventType, VoiceBroadcastInfoEventType } from "./voice-broadcast";
-import { getSenderName } from "./utils/event/getSenderName";
 
 /*
  * Dispatches:
@@ -80,17 +73,6 @@ const msgTypeHandlers: Record<string, (event: MatrixEvent) => string | null> = {
         return TextForEvent.textForLocationEvent(event)();
     },
     [MsgType.Audio]: (event: MatrixEvent): string | null => {
-        if (event.getContent()?.[VoiceBroadcastChunkEventType]) {
-            if (event.getContent()?.[VoiceBroadcastChunkEventType]?.sequence === 1) {
-                // Show a notification for the first broadcast chunk.
-                // At this point a user received something to listen to.
-                return _t("%(senderName)s started a voice broadcast", { senderName: getSenderName(event) });
-            }
-
-            // Mute other broadcast chunks
-            return null;
-        }
-
         return TextForEvent.textForEvent(event, MatrixClientPeg.get());
     },
 };
@@ -464,15 +446,7 @@ class NotifierClass {
     // XXX: exported for tests
     public evaluateEvent(ev: MatrixEvent): void {
         // Mute notifications for broadcast info events
-        if (ev.getType() === VoiceBroadcastInfoEventType) return;
         let roomId = ev.getRoomId()!;
-        if (LegacyCallHandler.instance.getSupportsVirtualRooms()) {
-            // Attempt to translate a virtual room to a native one
-            const nativeRoomId = VoipUserMapper.sharedInstance().nativeRoomForVirtualRoom(roomId);
-            if (nativeRoomId) {
-                roomId = nativeRoomId;
-            }
-        }
         const room = MatrixClientPeg.get().getRoom(roomId);
         if (!room) {
             // e.g we are in the process of joining a room.
@@ -511,15 +485,6 @@ class NotifierClass {
      * Some events require special handling such as showing in-app toasts
      */
     private performCustomEventHandling(ev: MatrixEvent): void {
-        if (ElementCall.CALL_EVENT_TYPE.names.includes(ev.getType()) && SettingsStore.getValue("feature_group_calls")) {
-            ToastStore.sharedInstance().addOrReplaceToast({
-                key: getIncomingCallToastKey(ev.getStateKey()!),
-                priority: 100,
-                component: IncomingCallToast,
-                bodyClassName: "mx_IncomingCallToast",
-                props: { callEvent: ev },
-            });
-        }
     }
 }
 

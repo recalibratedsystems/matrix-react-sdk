@@ -36,7 +36,6 @@ import { getAddressType } from "./UserAddress";
 import { VIRTUAL_ROOM_EVENT_TYPE } from "./call-types";
 import SpaceStore from "./stores/spaces/SpaceStore";
 import { makeSpaceParentEvent } from "./utils/space";
-import { JitsiCall, ElementCall } from "./models/Call";
 import { Action } from "./dispatcher/actions";
 import ErrorDialog from "./components/views/dialogs/ErrorDialog";
 import Spinner from "./components/views/elements/Spinner";
@@ -154,8 +153,6 @@ export default async function createRoom(client: MatrixClient, opts: IOpts): Pro
             createOpts.power_level_content_override = {
                 events: {
                     ...DEFAULT_EVENT_POWER_LEVELS,
-                    // Allow all users to send call membership updates
-                    [JitsiCall.MEMBER_EVENT_TYPE]: 0,
                     // Make widgets immutable, even to admins
                     "im.vector.modular.widgets": 200,
                 },
@@ -168,10 +165,6 @@ export default async function createRoom(client: MatrixClient, opts: IOpts): Pro
             createOpts.power_level_content_override = {
                 events: {
                     ...DEFAULT_EVENT_POWER_LEVELS,
-                    // Allow all users to send call membership updates
-                    [ElementCall.MEMBER_EVENT_TYPE.name]: 0,
-                    // Make calls immutable, even to admins
-                    [ElementCall.CALL_EVENT_TYPE.name]: 200,
                 },
                 users: {
                     // Temporarily give ourselves the power to set up a call
@@ -183,10 +176,6 @@ export default async function createRoom(client: MatrixClient, opts: IOpts): Pro
         createOpts.power_level_content_override = {
             events: {
                 ...DEFAULT_EVENT_POWER_LEVELS,
-                // Element Call should be disabled by default
-                [ElementCall.MEMBER_EVENT_TYPE.name]: 100,
-                // Make sure only admins can enable it
-                [ElementCall.CALL_EVENT_TYPE.name]: 100,
             },
         };
     }
@@ -335,16 +324,11 @@ export default async function createRoom(client: MatrixClient, opts: IOpts): Pro
         })
         .then(async (): Promise<void> => {
             if (opts.roomType === RoomType.ElementVideo) {
-                // Set up this video room with a Jitsi call
-                await JitsiCall.create(await room);
 
                 // Reset our power level back to admin so that the widget becomes immutable
                 const plEvent = (await room).currentState.getStateEvents(EventType.RoomPowerLevels, "");
                 await client.setPowerLevel(roomId, client.getUserId()!, 100, plEvent);
             } else if (opts.roomType === RoomType.UnstableCall) {
-                // Set up this video room with an Element call
-                await ElementCall.create(await room);
-
                 // Reset our power level back to admin so that the call becomes immutable
                 const plEvent = (await room).currentState.getStateEvents(EventType.RoomPowerLevels, "");
                 await client.setPowerLevel(roomId, client.getUserId()!, 100, plEvent);

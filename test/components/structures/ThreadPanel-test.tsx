@@ -31,8 +31,6 @@ import ResizeNotifier from "../../../src/utils/ResizeNotifier";
 import { getRoomContext, mockPlatformPeg, stubClient } from "../../test-utils";
 import { mkThread } from "../../test-utils/threads";
 
-jest.mock("../../../src/utils/Feedback");
-
 describe("ThreadPanel", () => {
     describe("Header", () => {
         it("expect that All filter for ThreadPanelHeader properly renders Show: All threads", () => {

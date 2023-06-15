@@ -31,7 +31,6 @@ import { TimelineRenderingType } from "../contexts/RoomContext";
 import { launchPollEditor } from "../components/views/messages/MPollBody";
 import { Action } from "../dispatcher/actions";
 import { ViewRoomPayload } from "../dispatcher/payloads/ViewRoomPayload";
-import { VoiceBroadcastInfoEventType, VoiceBroadcastInfoState } from "../voice-broadcast/types";
 
 /**
  * Returns whether an event should allow actions like reply, reactions, edit, etc.
@@ -57,9 +56,7 @@ export function isContentActionable(mxEvent: MatrixEvent): boolean {
             mxEvent.getType() === "m.sticker" ||
             M_POLL_START.matches(mxEvent.getType()) ||
             M_POLL_END.matches(mxEvent.getType()) ||
-            M_BEACON_INFO.matches(mxEvent.getType()) ||
-            (mxEvent.getType() === VoiceBroadcastInfoEventType &&
-                mxEvent.getContent()?.state === VoiceBroadcastInfoState.Started)
+            M_BEACON_INFO.matches(mxEvent.getType())
         ) {
             return true;
         }
@@ -206,12 +203,6 @@ export function getMessageModerationState(mxEvent: MatrixEvent, client: MatrixCl
     }
     // For everybody else, hide the message.
     return MessageModerationState.HIDDEN_TO_CURRENT_USER;
-}
-
-export function isVoiceMessage(mxEvent: MatrixEvent): boolean {
-    const content = mxEvent.getContent();
-    // MSC2516 is a legacy identifier. See https://github.com/matrix-org/matrix-doc/pull/3245
-    return !!content["org.matrix.msc2516.voice"] || !!content["org.matrix.msc3245.voice"];
 }
 
 export async function fetchInitialEvent(

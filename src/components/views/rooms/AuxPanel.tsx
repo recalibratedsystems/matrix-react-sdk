@@ -27,7 +27,6 @@ import SettingsStore from "../../../settings/SettingsStore";
 import AutoHideScrollbar from "../../structures/AutoHideScrollbar";
 import { UIFeature } from "../../../settings/UIFeature";
 import ResizeNotifier from "../../../utils/ResizeNotifier";
-import LegacyCallViewForRoom from "../voip/LegacyCallViewForRoom";
 import { objectHasDiff } from "../../../utils/objects";
 
 interface IProps {
@@ -127,14 +126,6 @@ export default class AuxPanel extends React.Component<IProps, IState> {
     }
 
     public render(): React.ReactNode {
-        const callView = (
-            <LegacyCallViewForRoom
-                roomId={this.props.room.roomId}
-                resizeNotifier={this.props.resizeNotifier}
-                showApps={this.props.showApps}
-            />
-        );
-
         let appsDrawer;
         if (SettingsStore.getValue(UIFeature.Widgets)) {
             appsDrawer = (
@@ -198,7 +189,6 @@ export default class AuxPanel extends React.Component<IProps, IState> {
                 {stateViews}
                 {this.props.children}
                 {appsDrawer}
-                {callView}
             </AutoHideScrollbar>
         );
     }

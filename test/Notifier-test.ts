@@ -20,10 +20,8 @@ import { Room, RoomEvent } from "matrix-js-sdk/src/models/room";
 import { IContent, MatrixEvent } from "matrix-js-sdk/src/models/event";
 import { SyncState } from "matrix-js-sdk/src/sync";
 import { waitFor } from "@testing-library/react";
-import { EventType, MsgType } from "matrix-js-sdk/src/matrix";
 
 import BasePlatform from "../src/BasePlatform";
-import { ElementCall } from "../src/models/Call";
 import Notifier from "../src/Notifier";
 import SettingsStore from "../src/settings/SettingsStore";
 import ToastStore from "../src/stores/ToastStore";
@@ -32,7 +30,6 @@ import {
     getLocalNotificationAccountDataEventType,
 } from "../src/utils/notifications";
 import { getMockClientWithEventEmitter, mkEvent, mockClientMethodsUser, mockPlatformPeg } from "./test-utils";
-import { IncomingCallToast } from "../src/toasts/IncomingCallToast";
 import { SdkContextClass } from "../src/contexts/SDKContext";
 import UserActivity from "../src/UserActivity";
 import Modal from "../src/Modal";
@@ -40,8 +37,6 @@ import { mkThread } from "./test-utils/threads";
 import dis from "../src/dispatcher/dispatcher";
 import { ThreadPayload } from "../src/dispatcher/payloads/ThreadPayload";
 import { Action } from "../src/dispatcher/actions";
-import { VoiceBroadcastChunkEventType, VoiceBroadcastInfoState } from "../src/voice-broadcast";
-import { mkVoiceBroadcastInfoStateEvent } from "./voice-broadcast/utils/test-utils";
 
 jest.mock("../src/utils/notifications", () => ({
     // @ts-ignore
@@ -73,22 +68,6 @@ describe("Notifier", () => {
         mockClient!.emit(RoomEvent.Timeline, event, testRoom, false, false, {
             liveEvent: true,
             timeline: testRoom.getLiveTimeline(),
-        });
-    };
-
-    const mkAudioEvent = (broadcastChunkContent?: object): MatrixEvent => {
-        const chunkContent = broadcastChunkContent ? { [VoiceBroadcastChunkEventType]: broadcastChunkContent } : {};
-
-        return mkEvent({
-            event: true,
-            type: EventType.RoomMessage,
-            user: "@user:example.com",
-            room: "!room:example.com",
-            content: {
-                ...chunkContent,
-                msgtype: MsgType.Audio,
-                body: "test audio message",
-            },
         });
     };
 
@@ -277,36 +256,6 @@ describe("Notifier", () => {
             Notifier.displayPopupNotification(testEvent, testRoom);
             expect(MockPlatform.displayNotification).toHaveBeenCalledTimes(count);
         });
-
-        it("should display a notification for a voice message", () => {
-            const audioEvent = mkAudioEvent();
-            Notifier.displayPopupNotification(audioEvent, testRoom);
-            expect(MockPlatform.displayNotification).toHaveBeenCalledWith(
-                "@user:example.com (!room1:server)",
-                "@user:example.com: test audio message",
-                "data:image/png;base64,00",
-                testRoom,
-                audioEvent,
-            );
-        });
-
-        it("should display the expected notification for a broadcast chunk with sequence = 1", () => {
-            const audioEvent = mkAudioEvent({ sequence: 1 });
-            Notifier.displayPopupNotification(audioEvent, testRoom);
-            expect(MockPlatform.displayNotification).toHaveBeenCalledWith(
-                "@user:example.com (!room1:server)",
-                "@user:example.com started a voice broadcast",
-                "data:image/png;base64,00",
-                testRoom,
-                audioEvent,
-            );
-        });
-
-        it("should display the expected notification for a broadcast chunk with sequence = 2", () => {
-            const audioEvent = mkAudioEvent({ sequence: 2 });
-            Notifier.displayPopupNotification(audioEvent, testRoom);
-            expect(MockPlatform.displayNotification).not.toHaveBeenCalled();
-        });
     });
 
     describe("getSoundForRoom", () => {
@@ -332,74 +281,6 @@ describe("Notifier", () => {
             mockClient.setAccountData(accountDataEventKey, event!);
             Notifier.playAudioNotification(testEvent, testRoom);
             expect(Notifier.getSoundForRoom).toHaveBeenCalledTimes(count);
-        });
-    });
-
-    describe("group call notifications", () => {
-        beforeEach(() => {
-            jest.spyOn(SettingsStore, "getValue").mockReturnValue(true);
-            jest.spyOn(ToastStore.sharedInstance(), "addOrReplaceToast");
-
-            mockClient.getPushActionsForEvent.mockReturnValue({
-                notify: true,
-                tweaks: {},
-            });
-            Notifier.start();
-            Notifier.onSyncStateChange(SyncState.Syncing, null);
-        });
-
-        afterEach(() => {
-            jest.resetAllMocks();
-        });
-
-        const callOnEvent = (type?: string) => {
-            const callEvent = mkEvent({
-                type: type ?? ElementCall.CALL_EVENT_TYPE.name,
-                user: "@alice:foo",
-                room: roomId,
-                content: {},
-                event: true,
-            });
-            emitLiveEvent(callEvent);
-            return callEvent;
-        };
-
-        const setGroupCallsEnabled = (val: boolean) => {
-            jest.spyOn(SettingsStore, "getValue").mockImplementation((name: string) => {
-                if (name === "feature_group_calls") return val;
-            });
-        };
-
-        it("should show toast when group calls are supported", () => {
-            setGroupCallsEnabled(true);
-
-            const callEvent = callOnEvent();
-
-            expect(ToastStore.sharedInstance().addOrReplaceToast).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    key: `call_${callEvent.getStateKey()}`,
-                    priority: 100,
-                    component: IncomingCallToast,
-                    bodyClassName: "mx_IncomingCallToast",
-                    props: { callEvent },
-                }),
-            );
-        });
-
-        it("should not show toast when group calls are not supported", () => {
-            setGroupCallsEnabled(false);
-
-            callOnEvent();
-
-            expect(ToastStore.sharedInstance().addOrReplaceToast).not.toHaveBeenCalled();
-        });
-
-        it("should not show toast when calling with non-group call event", () => {
-            setGroupCallsEnabled(true);
-
-            callOnEvent("event_type");
-
-            expect(ToastStore.sharedInstance().addOrReplaceToast).not.toHaveBeenCalled();
         });
     });
 
@@ -506,29 +387,6 @@ describe("Notifier", () => {
 
             Notifier.evaluateEvent(events[1]);
             expect(Notifier.displayPopupNotification).toHaveBeenCalledTimes(1);
-        });
-
-        it("should show a pop-up for an audio message", () => {
-            Notifier.evaluateEvent(mkAudioEvent());
-            expect(Notifier.displayPopupNotification).toHaveBeenCalledTimes(1);
-        });
-
-        it("should not show a notification for broadcast info events in any case", () => {
-            // Let client decide to show a notification
-            mockClient.getPushActionsForEvent.mockReturnValue({
-                notify: true,
-                tweaks: {},
-            });
-
-            const broadcastStartedEvent = mkVoiceBroadcastInfoStateEvent(
-                "!other:example.org",
-                VoiceBroadcastInfoState.Started,
-                "@user:example.com",
-                "ABC123",
-            );
-
-            Notifier.evaluateEvent(broadcastStartedEvent);
-            expect(Notifier.displayPopupNotification).not.toHaveBeenCalled();
         });
     });
 

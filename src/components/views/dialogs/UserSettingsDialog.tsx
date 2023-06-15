@@ -26,7 +26,6 @@ import AppearanceUserSettingsTab from "../settings/tabs/user/AppearanceUserSetti
 import SecurityUserSettingsTab from "../settings/tabs/user/SecurityUserSettingsTab";
 import NotificationUserSettingsTab from "../settings/tabs/user/NotificationUserSettingsTab";
 import PreferencesUserSettingsTab from "../settings/tabs/user/PreferencesUserSettingsTab";
-import VoiceUserSettingsTab from "../settings/tabs/user/VoiceUserSettingsTab";
 import HelpUserSettingsTab from "../settings/tabs/user/HelpUserSettingsTab";
 import SdkConfig from "../../../SdkConfig";
 import MjolnirUserSettingsTab from "../settings/tabs/user/MjolnirUserSettingsTab";
@@ -128,18 +127,6 @@ export default class UserSettingsDialog extends React.Component<IProps, IState> 
                 "UserSettingsSidebar",
             ),
         );
-
-        if (SettingsStore.getValue(UIFeature.Voip)) {
-            tabs.push(
-                new Tab(
-                    UserTab.Voice,
-                    _td("Voice & Video"),
-                    "mx_UserSettingsDialog_voiceIcon",
-                    <VoiceUserSettingsTab />,
-                    "UserSettingsVoiceVideo",
-                ),
-            );
-        }
 
         tabs.push(
             new Tab(

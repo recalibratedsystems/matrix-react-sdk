@@ -45,19 +45,15 @@ import { ButtonEvent } from "../elements/AccessibleButton";
 
 interface IProps {
     addEmoji: (emoji: string) => boolean;
-    haveRecording: boolean;
     isMenuOpen: boolean;
     isStickerPickerOpen: boolean;
     menuPosition?: MenuProps;
-    onRecordStartEndClick: () => void;
     relation?: IEventRelation;
     setStickerPickerOpen: (isStickerPickerOpen: boolean) => void;
     showLocationButton: boolean;
     showPollsButton: boolean;
     showStickersButton: boolean;
     toggleButtonMenu: () => void;
-    showVoiceBroadcastButton: boolean;
-    onStartVoiceBroadcastClick: () => void;
     isRichTextEnabled: boolean;
     onComposerModeClick: () => void;
 }
@@ -71,7 +67,7 @@ const MessageComposerButtons: React.FC<IProps> = (props: IProps) => {
 
     const isWysiwygLabEnabled = useSettingValue<boolean>("feature_wysiwyg_composer");
 
-    if (!matrixClient || !room || props.haveRecording) {
+    if (!matrixClient || !room) {
         return null;
     }
 
@@ -92,8 +88,6 @@ const MessageComposerButtons: React.FC<IProps> = (props: IProps) => {
         moreButtons = [
             uploadButton(), // props passed via UploadButtonContext
             showStickersButton(props),
-            voiceRecordingButton(props, narrow),
-            startVoiceBroadcastButton(props),
             props.showPollsButton ? pollButton(room, props.relation) : null,
             showLocationButton(props, room, matrixClient),
         ];
@@ -112,8 +106,6 @@ const MessageComposerButtons: React.FC<IProps> = (props: IProps) => {
         ];
         moreButtons = [
             showStickersButton(props),
-            voiceRecordingButton(props, narrow),
-            startVoiceBroadcastButton(props),
             props.showPollsButton ? pollButton(room, props.relation) : null,
             showLocationButton(props, room, matrixClient),
         ];
@@ -265,31 +257,6 @@ function showStickersButton(props: IProps): ReactElement | null {
             title={props.isStickerPickerOpen ? _t("Hide stickers") : _t("Sticker")}
         />
     ) : null;
-}
-
-const startVoiceBroadcastButton: React.FC<IProps> = (props: IProps): ReactElement | null => {
-    return props.showVoiceBroadcastButton ? (
-        <CollapsibleButton
-            key="start_voice_broadcast"
-            className="mx_MessageComposer_button"
-            iconClassName="mx_MessageComposer_voiceBroadcast"
-            onClick={props.onStartVoiceBroadcastClick}
-            title={_t("Voice broadcast")}
-        />
-    ) : null;
-};
-
-function voiceRecordingButton(props: IProps, narrow: boolean): ReactElement | null {
-    // XXX: recording UI does not work well in narrow mode, so hide for now
-    return narrow ? null : (
-        <CollapsibleButton
-            key="voice_message_send"
-            className="mx_MessageComposer_button"
-            iconClassName="mx_MessageComposer_voiceMessage"
-            onClick={props.onRecordStartEndClick}
-            title={_t("Voice Message")}
-        />
-    );
 }
 
 function pollButton(room: Room, relation?: IEventRelation): ReactElement {

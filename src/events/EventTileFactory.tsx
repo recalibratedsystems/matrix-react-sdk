@@ -20,16 +20,12 @@ import { EventType, MsgType, RelationType } from "matrix-js-sdk/src/@types/event
 import { Optional } from "matrix-events-sdk";
 import { M_POLL_END, M_POLL_START } from "matrix-js-sdk/src/@types/polls";
 import { MatrixClient } from "matrix-js-sdk/src/client";
-import { GroupCallIntent } from "matrix-js-sdk/src/webrtc/groupCall";
 
 import SettingsStore from "../settings/SettingsStore";
-import LegacyCallEventGrouper from "../components/structures/LegacyCallEventGrouper";
 import { EventTileProps } from "../components/views/rooms/EventTile";
 import { TimelineRenderingType } from "../contexts/RoomContext";
 import MessageEvent from "../components/views/messages/MessageEvent";
 import MKeyVerificationConclusion from "../components/views/messages/MKeyVerificationConclusion";
-import LegacyCallEvent from "../components/views/messages/LegacyCallEvent";
-import { CallEvent } from "../components/views/messages/CallEvent";
 import TextualEvent from "../components/views/messages/TextualEvent";
 import EncryptionEvent from "../components/views/messages/EncryptionEvent";
 import { RoomPredecessorTile } from "../components/views/messages/RoomPredecessorTile";
@@ -45,13 +41,6 @@ import { getMessageModerationState, MessageModerationState } from "../utils/Even
 import HiddenBody from "../components/views/messages/HiddenBody";
 import ViewSourceEvent from "../components/views/messages/ViewSourceEvent";
 import { shouldDisplayAsBeaconTile } from "../utils/beacon/timeline";
-import { shouldDisplayAsVoiceBroadcastTile } from "../voice-broadcast/utils/shouldDisplayAsVoiceBroadcastTile";
-import { ElementCall } from "../models/Call";
-import {
-    isRelatedToVoiceBroadcast,
-    shouldDisplayAsVoiceBroadcastStoppedText,
-    VoiceBroadcastChunkEventType,
-} from "../voice-broadcast";
 
 // Subset of EventTile's IProps plus some mixins
 export interface EventTileTypeProps
@@ -67,7 +56,6 @@ export interface EventTileTypeProps
         | "editState"
         | "replacingEventId"
         | "permalinkCreator"
-        | "callEventGrouper"
         | "isSeeingThroughMessageHiddenForModeration"
         | "inhibitInteraction"
     > {
@@ -83,10 +71,6 @@ type Factory<X = FactoryProps> = (ref: Optional<React.RefObject<any>>, props: X)
 
 export const MessageEventFactory: Factory = (ref, props) => <MessageEvent ref={ref} {...props} />;
 const KeyVerificationConclFactory: Factory = (ref, props) => <MKeyVerificationConclusion ref={ref} {...props} />;
-const LegacyCallEventFactory: Factory<FactoryProps & { callEventGrouper: LegacyCallEventGrouper }> = (ref, props) => (
-    <LegacyCallEvent ref={ref} {...props} />
-);
-const CallEventFactory: Factory = (ref, props) => <CallEvent ref={ref} {...props} />;
 export const TextualEventFactory: Factory = (ref, props) => <TextualEvent ref={ref} {...props} />;
 const VerificationReqFactory: Factory = (ref, props) => <MKeyVerificationRequest ref={ref} {...props} />;
 const HiddenEventFactory: Factory = (ref, props) => <HiddenBody ref={ref} {...props} />;
@@ -105,7 +89,6 @@ const EVENT_TILE_TYPES = new Map<string, Factory>([
     [M_POLL_END.altName, MessageEventFactory],
     [EventType.KeyVerificationCancel, KeyVerificationConclFactory],
     [EventType.KeyVerificationDone, KeyVerificationConclFactory],
-    [EventType.CallInvite, LegacyCallEventFactory], // note that this requires a special factory type
 ]);
 
 const STATE_EVENT_TILE_TYPES = new Map<string, Factory>([
@@ -128,10 +111,6 @@ const STATE_EVENT_TILE_TYPES = new Map<string, Factory>([
     [EventType.RoomJoinRules, TextualEventFactory],
     [EventType.RoomGuestAccess, TextualEventFactory],
 ]);
-
-for (const evType of ElementCall.CALL_EVENT_TYPE.names) {
-    STATE_EVENT_TILE_TYPES.set(evType, CallEventFactory);
-}
 
 // Add all the Mjolnir stuff to the renderer too
 for (const evType of ALL_RULE_TYPES) {
@@ -247,12 +226,6 @@ export function pickFactory(
             return MessageEventFactory;
         }
 
-        if (shouldDisplayAsVoiceBroadcastTile(mxEvent)) {
-            return MessageEventFactory;
-        } else if (shouldDisplayAsVoiceBroadcastStoppedText(mxEvent)) {
-            return TextualEventFactory;
-        }
-
         if (SINGULAR_STATE_EVENTS.has(evType) && mxEvent.getStateKey() !== "") {
             return noEventFactoryFactory(); // improper event type to render
         }
@@ -270,16 +243,6 @@ export function pickFactory(
     }
 
     if (mxEvent.isRelation(RelationType.Replace)) {
-        return noEventFactoryFactory();
-    }
-
-    if (mxEvent.getContent()[VoiceBroadcastChunkEventType]) {
-        // hide voice broadcast chunks
-        return noEventFactoryFactory();
-    }
-
-    if (!showHiddenEvents && mxEvent.isDecryptionFailure() && isRelatedToVoiceBroadcast(mxEvent, cli)) {
-        // hide utd events related to a broadcast
         return noEventFactoryFactory();
     }
 
@@ -320,7 +283,6 @@ export function renderTile(
         showUrlPreview,
         permalinkCreator,
         onHeightChanged,
-        callEventGrouper,
         getRelationsForEvent,
         isSeeingThroughMessageHiddenForModeration,
         timestamp,
@@ -357,7 +319,6 @@ export function renderTile(
                 showUrlPreview,
                 permalinkCreator,
                 onHeightChanged,
-                callEventGrouper,
                 getRelationsForEvent,
                 isSeeingThroughMessageHiddenForModeration,
                 timestamp,
@@ -445,13 +406,6 @@ export function haveRendererForEvent(mxEvent: MatrixEvent, showHiddenEvents: boo
         const dynamicPredecessorsEnabled = SettingsStore.getValue("feature_dynamic_room_predecessors");
         const predecessor = cli.getRoom(mxEvent.getRoomId())?.findPredecessor(dynamicPredecessorsEnabled);
         return Boolean(predecessor);
-    } else if (
-        ElementCall.CALL_EVENT_TYPE.names.some((eventType) => handler === STATE_EVENT_TILE_TYPES.get(eventType))
-    ) {
-        const intent = mxEvent.getContent()["m.intent"];
-        const newlyStarted = Object.keys(mxEvent.getPrevContent()).length === 0;
-        // Only interested in events that mark the start of a non-room call
-        return newlyStarted && typeof intent === "string" && intent !== GroupCallIntent.Room;
     } else if (handler === JSONEventFactory) {
         return false;
     } else {

@@ -77,47 +77,7 @@ export default class ErrorBoundary extends React.PureComponent<Props, IState> {
 
     public render(): ReactNode {
         if (this.state.error) {
-            const newIssueUrl = "https://github.com/vector-im/element-web/issues/new/choose";
-
             let bugReportSection;
-            if (SdkConfig.get().bug_report_endpoint_url) {
-                bugReportSection = (
-                    <React.Fragment>
-                        <p>
-                            {_t(
-                                "Please <newIssueLink>create a new issue</newIssueLink> " +
-                                    "on GitHub so that we can investigate this bug.",
-                                {},
-                                {
-                                    newIssueLink: (sub) => {
-                                        return (
-                                            <a target="_blank" rel="noreferrer noopener" href={newIssueUrl}>
-                                                {sub}
-                                            </a>
-                                        );
-                                    },
-                                },
-                            )}
-                        </p>
-                        <p>
-                            {_t(
-                                "If you've submitted a bug via GitHub, debug logs can help " +
-                                    "us track down the problem. ",
-                            )}
-                            {_t(
-                                "Debug logs contain application " +
-                                    "usage data including your username, the IDs or aliases of " +
-                                    "the rooms you have visited, which UI elements you " +
-                                    "last interacted with, and the usernames of other users. " +
-                                    "They do not contain messages.",
-                            )}
-                        </p>
-                        <AccessibleButton onClick={this.onBugReport} kind="primary">
-                            {_t("Submit debug logs")}
-                        </AccessibleButton>
-                    </React.Fragment>
-                );
-            }
 
             let clearCacheButton: JSX.Element | undefined;
             // we only show this button if there is an initialised MatrixClient otherwise we can't clear the cache

@@ -25,7 +25,6 @@ import { ExportType, IExportOptions } from "./exportUtils";
 import { decryptFile } from "../DecryptFile";
 import { mediaFromContent } from "../../customisations/Media";
 import { formatFullDateNoDay, formatFullDateNoDayISO } from "../../DateUtils";
-import { isVoiceMessage } from "../EventUtils";
 import { IMediaEventContent } from "../../customisations/models/IMediaEventContent";
 import { _t } from "../../languageHandler";
 import SdkConfig from "../../SdkConfig";
@@ -280,7 +279,6 @@ export default abstract class Exporter {
         let [fileName, fileExt] = this.splitFileName(event.getContent().body);
 
         if (event.getType() === "m.sticker") fileExt = ".png";
-        if (isVoiceMessage(event)) fileExt = ".ogg";
 
         return fileDirectory + "/" + fileName + "-" + fileDate + fileExt;
     }

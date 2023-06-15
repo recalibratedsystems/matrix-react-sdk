@@ -25,7 +25,6 @@ import { _t } from "../../languageHandler";
 import { ChevronFace, ContextMenuButton, MenuProps } from "./ContextMenu";
 import { UserTab } from "../views/dialogs/UserTab";
 import { OpenToTabPayload } from "../../dispatcher/payloads/OpenToTabPayload";
-import FeedbackDialog from "../views/dialogs/FeedbackDialog";
 import Modal from "../../Modal";
 import LogoutDialog from "../views/dialogs/LogoutDialog";
 import SettingsStore from "../../settings/SettingsStore";
@@ -49,9 +48,7 @@ import UserIdentifierCustomisations from "../../customisations/UserIdentifier";
 import PosthogTrackers from "../../PosthogTrackers";
 import { ViewHomePagePayload } from "../../dispatcher/payloads/ViewHomePagePayload";
 import { Icon as LiveIcon } from "../../../res/img/compound/live-8px.svg";
-import { VoiceBroadcastRecording, VoiceBroadcastRecordingsStoreEvent } from "../../voice-broadcast";
 import { SDKContext } from "../../contexts/SDKContext";
-import { shouldShowFeedback } from "../../utils/Feedback";
 
 interface IProps {
     isPanelCollapsed: boolean;
@@ -102,7 +99,7 @@ export default class UserMenu extends React.Component<IProps, IState> {
             isDarkTheme: this.isUserOnDarkTheme(),
             isHighContrast: this.isUserOnHighContrastTheme(),
             selectedSpace: SpaceStore.instance.activeSpaceRoom,
-            showLiveAvatarAddon: this.context.voiceBroadcastRecordingsStore.hasCurrent(),
+            showLiveAvatarAddon: false,
         };
 
         OwnProfileStore.instance.on(UPDATE_EVENT, this.onProfileUpdate);
@@ -113,17 +110,7 @@ export default class UserMenu extends React.Component<IProps, IState> {
         return !!getHomePageUrl(SdkConfig.get(), this.context.client!);
     }
 
-    private onCurrentVoiceBroadcastRecordingChanged = (recording: VoiceBroadcastRecording | null): void => {
-        this.setState({
-            showLiveAvatarAddon: recording !== null,
-        });
-    };
-
     public componentDidMount(): void {
-        this.context.voiceBroadcastRecordingsStore.on(
-            VoiceBroadcastRecordingsStoreEvent.CurrentChanged,
-            this.onCurrentVoiceBroadcastRecordingChanged,
-        );
         this.dispatcherRef = defaultDispatcher.register(this.onAction);
         this.themeWatcherRef = SettingsStore.watchSetting("theme", null, this.onThemeChanged);
     }
@@ -134,10 +121,6 @@ export default class UserMenu extends React.Component<IProps, IState> {
         if (this.dispatcherRef) defaultDispatcher.unregister(this.dispatcherRef);
         OwnProfileStore.instance.off(UPDATE_EVENT, this.onProfileUpdate);
         SpaceStore.instance.off(UPDATE_SELECTED_SPACE, this.onSelectedSpaceUpdate);
-        this.context.voiceBroadcastRecordingsStore.off(
-            VoiceBroadcastRecordingsStoreEvent.CurrentChanged,
-            this.onCurrentVoiceBroadcastRecordingChanged,
-        );
     }
 
     private isUserOnDarkTheme(): boolean {
@@ -246,14 +229,6 @@ export default class UserMenu extends React.Component<IProps, IState> {
         this.setState({ contextMenuPosition: null }); // also close the menu
     };
 
-    private onProvideFeedback = (ev: ButtonEvent): void => {
-        ev.preventDefault();
-        ev.stopPropagation();
-
-        Modal.createDialog(FeedbackDialog);
-        this.setState({ contextMenuPosition: null }); // also close the menu
-    };
-
     private onSignOutClick = async (ev: ButtonEvent): Promise<void> => {
         ev.preventDefault();
         ev.stopPropagation();
@@ -333,17 +308,6 @@ export default class UserMenu extends React.Component<IProps, IState> {
             );
         }
 
-        let feedbackButton: JSX.Element | undefined;
-        if (shouldShowFeedback()) {
-            feedbackButton = (
-                <IconizedContextMenuOption
-                    iconClassName="mx_UserMenu_iconMessage"
-                    label={_t("Feedback")}
-                    onClick={this.onProvideFeedback}
-                />
-            );
-        }
-
         let primaryOptionList = (
             <IconizedContextMenuOptionList>
                 {homeButton}
@@ -362,7 +326,6 @@ export default class UserMenu extends React.Component<IProps, IState> {
                     label={_t("All settings")}
                     onClick={(e) => this.onSettingsOpen(e)}
                 />
-                {feedbackButton}
                 <IconizedContextMenuOption
                     className="mx_IconizedContextMenu_option_red"
                     iconClassName="mx_UserMenu_iconSignOut"
@@ -381,7 +344,6 @@ export default class UserMenu extends React.Component<IProps, IState> {
                         label={_t("Settings")}
                         onClick={(e) => this.onSettingsOpen(e)}
                     />
-                    {feedbackButton}
                 </IconizedContextMenuOptionList>
             );
         }

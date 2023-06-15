@@ -40,7 +40,6 @@ import DMRoomMap from "../../utils/DMRoomMap";
 import NewRoomIntro from "../views/rooms/NewRoomIntro";
 import HistoryTile from "../views/rooms/HistoryTile";
 import defaultDispatcher from "../../dispatcher/dispatcher";
-import LegacyCallEventGrouper from "./LegacyCallEventGrouper";
 import WhoIsTypingTile from "../views/rooms/WhoIsTypingTile";
 import ScrollPanel, { IScrollState } from "./ScrollPanel";
 import GenericEventListSummary from "../views/elements/GenericEventListSummary";
@@ -57,7 +56,6 @@ import { IReadReceiptInfo } from "../views/rooms/ReadReceiptMarker";
 import { haveRendererForEvent } from "../../events/EventTileFactory";
 import { editorRoomKey } from "../../Editing";
 import { hasThreadSummary } from "../../utils/EventUtils";
-import { VoiceBroadcastInfoEventType } from "../../voice-broadcast";
 
 const CONTINUATION_MAX_INTERVAL = 5 * 60 * 1000; // 5 minutes
 const continuedTypes = [EventType.Sticker, EventType.RoomMessage];
@@ -193,8 +191,6 @@ interface IProps {
 
     hideThreadedMessages?: boolean;
     disableGrouping?: boolean;
-
-    callEventGroupers: Map<string, LegacyCallEventGrouper>;
 }
 
 interface IState {
@@ -781,7 +777,6 @@ export default class MessagePanel extends React.Component<IProps, IState> {
         // it's successful: we received it.
         isLastSuccessful = isLastSuccessful && mxEv.getSender() === MatrixClientPeg.get().getUserId();
 
-        const callEventGrouper = this.props.callEventGroupers.get(mxEv.getContent().call_id);
         // use txnId as key if available so that we don't remount during sending
         ret.push(
             <EventTile
@@ -810,7 +805,6 @@ export default class MessagePanel extends React.Component<IProps, IState> {
                 showReactions={this.props.showReactions}
                 layout={this.props.layout}
                 showReadReceipts={this.props.showReadReceipts}
-                callEventGrouper={callEventGrouper}
                 hideSender={this.state.hideSender}
             />,
         );
@@ -1134,11 +1128,6 @@ class CreationGrouper extends BaseGrouper {
         // beacons are not part of room creation configuration
         // should be shown in timeline
         if (M_BEACON_INFO.matches(eventType)) {
-            return false;
-        }
-
-        if (VoiceBroadcastInfoEventType === eventType) {
-            // always show voice broadcast info events in timeline
             return false;
         }
 

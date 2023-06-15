@@ -17,7 +17,6 @@ limitations under the License.
 import React, { ClipboardEvent } from "react";
 import { ClientEvent, MatrixClient } from "matrix-js-sdk/src/client";
 import { MatrixEvent } from "matrix-js-sdk/src/models/event";
-import { MatrixCall } from "matrix-js-sdk/src/webrtc/call";
 import classNames from "classnames";
 import { ISyncStateData, SyncState } from "matrix-js-sdk/src/sync";
 import { IUsageLimit } from "matrix-js-sdk/src/@types/partials";
@@ -26,7 +25,6 @@ import { MatrixError } from "matrix-js-sdk/src/matrix";
 
 import { isOnlyCtrlOrCmdKeyEvent, Key } from "../../Keyboard";
 import PageTypes from "../../PageTypes";
-import MediaDeviceHandler from "../../MediaDeviceHandler";
 import { fixupColorFonts } from "../../utils/FontManager";
 import dis from "../../dispatcher/dispatcher";
 import { IMatrixClientCreds } from "../../MatrixClientPeg";
@@ -50,8 +48,6 @@ import { ICollapseConfig } from "../../resizer/distributors/collapse";
 import { getKeyBindingsManager } from "../../KeyBindingsManager";
 import { IOpts } from "../../createRoom";
 import SpacePanel from "../views/spaces/SpacePanel";
-import LegacyCallHandler, { LegacyCallHandlerEvent } from "../../LegacyCallHandler";
-import AudioFeedArrayForLegacyCall from "../views/voip/AudioFeedArrayForLegacyCall";
 import { OwnProfileStore } from "../../stores/OwnProfileStore";
 import { UPDATE_EVENT } from "../../stores/AsyncStore";
 import RoomView from "./RoomView";
@@ -68,7 +64,6 @@ import { KeyBindingAction } from "../../accessibility/KeyboardShortcuts";
 import { SwitchSpacePayload } from "../../dispatcher/payloads/SwitchSpacePayload";
 import LeftPanelLiveShareWarning from "../views/beacon/LeftPanelLiveShareWarning";
 import { UserOnboardingPage } from "../views/user-onboarding/UserOnboardingPage";
-import { PipContainer } from "./PipContainer";
 import { monitorSyncedPushRules } from "../../utils/pushRules/monitorSyncedPushRules";
 import { ConfigOptions } from "../../SdkConfig";
 
@@ -111,7 +106,6 @@ interface IState {
     usageLimitEventContent?: IUsageLimit;
     usageLimitEventTs?: number;
     useCompactLayout: boolean;
-    activeCalls: Array<MatrixCall>;
     backgroundImage?: string;
 }
 
@@ -144,13 +138,10 @@ class LoggedInView extends React.Component<IProps, IState> {
             // use compact timeline view
             useCompactLayout: SettingsStore.getValue("useCompactLayout"),
             usageLimitDismissed: false,
-            activeCalls: LegacyCallHandler.instance.getAllActiveCalls(),
         };
 
         // stash the MatrixClient in case we log out before we are unmounted
         this._matrixClient = this.props.matrixClient;
-
-        MediaDeviceHandler.loadDevices();
 
         fixupColorFonts();
 
@@ -161,7 +152,6 @@ class LoggedInView extends React.Component<IProps, IState> {
 
     public componentDidMount(): void {
         document.addEventListener("keydown", this.onNativeKeyDown, false);
-        LegacyCallHandler.instance.addListener(LegacyCallHandlerEvent.CallState, this.onCallState);
 
         this.updateServerNoticeEvents();
 
@@ -195,7 +185,6 @@ class LoggedInView extends React.Component<IProps, IState> {
 
     public componentWillUnmount(): void {
         document.removeEventListener("keydown", this.onNativeKeyDown, false);
-        LegacyCallHandler.instance.removeListener(LegacyCallHandlerEvent.CallState, this.onCallState);
         this._matrixClient.removeListener(ClientEvent.AccountData, this.onAccountData);
         this._matrixClient.removeListener(ClientEvent.Sync, this.onSync);
         this._matrixClient.removeListener(RoomStateEvent.Events, this.onRoomStateEvents);
@@ -205,12 +194,6 @@ class LoggedInView extends React.Component<IProps, IState> {
         if (this.backgroundImageWatcherRef) SettingsStore.unwatchSetting(this.backgroundImageWatcherRef);
         this.resizer?.detach();
     }
-
-    private onCallState = (): void => {
-        const activeCalls = LegacyCallHandler.instance.getAllActiveCalls();
-        if (activeCalls === this.state.activeCalls) return;
-        this.setState({ activeCalls });
-    };
 
     private refreshBackgroundImage = async (): Promise<void> => {
         let backgroundImage = SettingsStore.getValue("RoomList.backgroundImage");
@@ -663,10 +646,6 @@ class LoggedInView extends React.Component<IProps, IState> {
             "mx_MatrixChat--with-avatar": this.state.backgroundImage,
         });
 
-        const audioFeedArraysForCalls = this.state.activeCalls.map((call) => {
-            return <AudioFeedArrayForLegacyCall call={call} key={call.callId} />;
-        });
-
         return (
             <MatrixClientContext.Provider value={this._matrixClient}>
                 <div
@@ -700,9 +679,8 @@ class LoggedInView extends React.Component<IProps, IState> {
                         <div className="mx_RoomView_wrapper">{pageElement}</div>
                     </div>
                 </div>
-                <PipContainer />
+                {/* <PipContainer /> */}
                 <NonUrgentToastContainer />
-                {audioFeedArraysForCalls}
             </MatrixClientContext.Provider>
         );
     }

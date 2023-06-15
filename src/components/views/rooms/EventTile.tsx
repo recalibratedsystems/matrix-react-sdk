@@ -24,7 +24,6 @@ import { RoomMember } from "matrix-js-sdk/src/models/room-member";
 import { Thread, ThreadEvent } from "matrix-js-sdk/src/models/thread";
 import { logger } from "matrix-js-sdk/src/logger";
 import { NotificationCountType, Room, RoomEvent } from "matrix-js-sdk/src/models/room";
-import { CallErrorCode } from "matrix-js-sdk/src/webrtc/call";
 import { CryptoEvent } from "matrix-js-sdk/src/crypto";
 import { UserTrustLevel } from "matrix-js-sdk/src/crypto/CrossSigning";
 
@@ -45,7 +44,6 @@ import EditorStateTransfer from "../../../utils/EditorStateTransfer";
 import { RoomPermalinkCreator } from "../../../utils/permalinks/Permalinks";
 import { StaticNotificationState } from "../../../stores/notifications/StaticNotificationState";
 import NotificationBadge from "./NotificationBadge";
-import LegacyCallEventGrouper from "../../structures/LegacyCallEventGrouper";
 import { ComposerInsertPayload } from "../../../dispatcher/payloads/ComposerInsertPayload";
 import { Action } from "../../../dispatcher/actions";
 import PlatformPeg from "../../../PlatformPeg";
@@ -73,7 +71,6 @@ import { ReadReceiptGroup } from "./ReadReceiptGroup";
 import { useTooltip } from "../../../utils/useTooltip";
 import { ShowThreadPayload } from "../../../dispatcher/payloads/ShowThreadPayload";
 import { isLocalRoom } from "../../../utils/localRoom/isLocalRoom";
-import { ElementCall } from "../../../models/Call";
 import { UnreadNotificationBadge } from "./NotificationBadge/UnreadNotificationBadge";
 import { EventTileThreadToolbar } from "./EventTile/EventTileThreadToolbar";
 
@@ -196,9 +193,6 @@ export interface EventTileProps {
 
     // Helper to build permalinks for the room
     permalinkCreator?: RoomPermalinkCreator;
-
-    // LegacyCallEventGrouper for this event
-    callEventGrouper?: LegacyCallEventGrouper;
 
     // Symbol of the root node
     as?: string;
@@ -863,9 +857,6 @@ export class UnwrappedEventTile extends React.Component<EventTileProps, IState> 
      * @returns {boolean} true if event should be hidden
      */
     private shouldHideEvent(): boolean {
-        // If the call was replaced we don't render anything since we render the other call
-        if (this.props.callEventGrouper?.hangupReason === CallErrorCode.Replaced) return true;
-
         return false;
     }
 
@@ -963,8 +954,7 @@ export class UnwrappedEventTile extends React.Component<EventTileProps, IState> 
             mx_EventTile_sending: !isEditing && isSending,
             mx_EventTile_highlight: this.shouldHighlight(),
             mx_EventTile_selected: this.props.isSelectedEvent || this.state.contextMenu,
-            mx_EventTile_continuation:
-                isContinuation || eventType === EventType.CallInvite || ElementCall.CALL_EVENT_TYPE.matches(eventType),
+            mx_EventTile_continuation: isContinuation,
             mx_EventTile_last: this.props.last,
             mx_EventTile_lastInSection: this.props.lastInSection,
             mx_EventTile_contextual: this.props.contextual,
@@ -1018,9 +1008,7 @@ export class UnwrappedEventTile extends React.Component<EventTileProps, IState> 
             avatarSize = 14;
             needsSenderProfile = true;
         } else if (
-            (this.props.continuation && this.context.timelineRenderingType !== TimelineRenderingType.File) ||
-            eventType === EventType.CallInvite ||
-            ElementCall.CALL_EVENT_TYPE.matches(eventType)
+            (this.props.continuation && this.context.timelineRenderingType !== TimelineRenderingType.File)
         ) {
             // no avatar or sender profile for continuation messages and call tiles
             avatarSize = 0;

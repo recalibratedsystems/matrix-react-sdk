@@ -33,8 +33,6 @@ import SdkConfig from "../../../../src/SdkConfig";
 
 jest.useFakeTimers();
 
-jest.mock("../../../../src/utils/Feedback");
-
 jest.mock("../../../../src/utils/direct-messages", () => ({
     // @ts-ignore
     ...jest.requireActual("../../../../src/utils/direct-messages"),

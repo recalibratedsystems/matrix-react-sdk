@@ -22,9 +22,7 @@ import {
     TextualEventFactory,
 } from "../../src/events/EventTileFactory";
 import SettingsStore from "../../src/settings/SettingsStore";
-import { VoiceBroadcastChunkEventType, VoiceBroadcastInfoState } from "../../src/voice-broadcast";
 import { createTestClient, mkEvent } from "../test-utils";
-import { mkVoiceBroadcastInfoStateEvent } from "../voice-broadcast/utils/test-utils";
 
 const roomId = "!room:example.com";
 
@@ -87,29 +85,7 @@ describe("pickFactory", () => {
                 last_known_event_id: null,
             },
         });
-        voiceBroadcastStartedEvent = mkVoiceBroadcastInfoStateEvent(
-            roomId,
-            VoiceBroadcastInfoState.Started,
-            client.getUserId()!,
-            client.deviceId!,
-        );
         room.addLiveEvents([voiceBroadcastStartedEvent]);
-        voiceBroadcastStoppedEvent = mkVoiceBroadcastInfoStateEvent(
-            roomId,
-            VoiceBroadcastInfoState.Stopped,
-            client.getUserId()!,
-            client.deviceId!,
-        );
-        voiceBroadcastChunkEvent = mkEvent({
-            event: true,
-            type: EventType.RoomMessage,
-            user: client.getUserId()!,
-            room: roomId,
-            content: {
-                msgtype: MsgType.Audio,
-                [VoiceBroadcastChunkEventType]: {},
-            },
-        });
         audioMessageEvent = mkEvent({
             event: true,
             type: EventType.RoomMessage,

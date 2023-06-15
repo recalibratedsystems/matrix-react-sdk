@@ -26,11 +26,9 @@ import { Action } from "../../../dispatcher/actions";
 import { RoomPermalinkCreator } from "../../../utils/permalinks/Permalinks";
 import SenderProfile from "../messages/SenderProfile";
 import MImageReplyBody from "../messages/MImageReplyBody";
-import { isVoiceMessage } from "../../../utils/EventUtils";
 import { getEventDisplayInfo } from "../../../utils/EventRenderingUtils";
 import MFileBody from "../messages/MFileBody";
 import MemberAvatar from "../avatars/MemberAvatar";
-import MVoiceMessageBody from "../messages/MVoiceMessageBody";
 import { ViewRoomPayload } from "../../../dispatcher/payloads/ViewRoomPayload";
 import { renderReplyTile } from "../../../events/EventTileFactory";
 import { GetRelationsForEvent } from "../rooms/EventTile";
@@ -153,7 +151,7 @@ export default class ReplyTile extends React.PureComponent<IProps> {
         const msgtypeOverrides: Record<string, typeof React.Component> = {
             [MsgType.Image]: MImageReplyBody,
             // Override audio and video body with file body. We also hide the download/decrypt button using CSS
-            [MsgType.Audio]: isVoiceMessage(mxEvent) ? MVoiceMessageBody : MFileBody,
+            [MsgType.Audio]: MFileBody,
             [MsgType.Video]: MFileBody,
         };
         const evOverrides: Record<string, typeof React.Component> = {

@@ -63,30 +63,17 @@ export default class SessionRestoreErrorDialog extends React.Component<IProps> {
             </button>
         );
 
-        let dialogButtons;
-        if (SdkConfig.get().bug_report_endpoint_url) {
-            dialogButtons = (
-                <DialogButtons
-                    primaryButton={_t("Send Logs")}
-                    onPrimaryButtonClick={this.sendBugReport}
-                    focus={true}
-                    hasCancel={false}
-                >
-                    {clearStorageButton}
-                </DialogButtons>
-            );
-        } else {
-            dialogButtons = (
-                <DialogButtons
-                    primaryButton={_t("Refresh")}
-                    onPrimaryButtonClick={this.onRefreshClick}
-                    focus={true}
-                    hasCancel={false}
-                >
-                    {clearStorageButton}
-                </DialogButtons>
-            );
-        }
+        const dialogButtons = (
+            <DialogButtons
+                primaryButton={_t("Refresh")}
+                onPrimaryButtonClick={this.onRefreshClick}
+                focus={true}
+                hasCancel={false}
+            >
+                {clearStorageButton}
+            </DialogButtons>
+        );
+        
 
         return (
             <BaseDialog

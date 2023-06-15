@@ -36,23 +36,12 @@ import { RoomSettingsTab } from "./components/views/dialogs/RoomSettingsDialog";
 import AccessibleButton, { ButtonEvent } from "./components/views/elements/AccessibleButton";
 import RightPanelStore from "./stores/right-panel/RightPanelStore";
 import { highlightEvent, isLocationEvent } from "./utils/EventUtils";
-import { ElementCall } from "./models/Call";
-import { textForVoiceBroadcastStoppedEvent, VoiceBroadcastInfoEventType } from "./voice-broadcast";
 import { getSenderName } from "./utils/event/getSenderName";
 
 function getRoomMemberDisplayname(client: MatrixClient, event: MatrixEvent, userId = event.getSender()): string {
     const roomId = event.getRoomId();
     const member = client.getRoom(roomId)?.getMember(userId!);
     return member?.name || member?.rawDisplayName || userId || _t("Someone");
-}
-
-function textForCallEvent(event: MatrixEvent, client: MatrixClient): () => string {
-    const roomName = client.getRoom(event.getRoomId()!)?.name;
-    const isSupported = client.supportsVoip();
-
-    return isSupported
-        ? () => _t("Video call started in %(roomName)s.", { roomName })
-        : () => _t("Video call started in %(roomName)s. (not supported by this browser)", { roomName });
 }
 
 // These functions are frequently used just to check whether an event has
@@ -919,17 +908,11 @@ const stateHandlers: IHandlers = {
     // TODO: Enable support for m.widget event type (https://github.com/vector-im/element-web/issues/13111)
     "im.vector.modular.widgets": textForWidgetEvent,
     [WIDGET_LAYOUT_EVENT_TYPE]: textForWidgetLayoutEvent,
-    [VoiceBroadcastInfoEventType]: textForVoiceBroadcastStoppedEvent,
 };
 
 // Add all the Mjolnir stuff to the renderer
 for (const evType of ALL_RULE_TYPES) {
     stateHandlers[evType] = textForMjolnirEvent;
-}
-
-// Add both stable and unstable m.call events
-for (const evType of ElementCall.CALL_EVENT_TYPE.names) {
-    stateHandlers[evType] = textForCallEvent;
 }
 
 /**

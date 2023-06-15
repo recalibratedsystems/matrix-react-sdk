@@ -34,7 +34,6 @@ import SettingsStore from "../../../settings/SettingsStore";
 import { UIFeature } from "../../../settings/UIFeature";
 import BaseDialog from "./BaseDialog";
 import { Action } from "../../../dispatcher/actions";
-import { VoipRoomSettingsTab } from "../settings/tabs/room/VoipRoomSettingsTab";
 import { ActionPayload } from "../../../dispatcher/payloads";
 import { NonEmptyArray } from "../../../@types/common";
 import { PollHistoryTab } from "../settings/tabs/room/PollHistoryTab";
@@ -132,16 +131,6 @@ class RoomSettingsDialog extends React.Component<IProps, IState> {
                 "RoomSettingsGeneral",
             ),
         );
-        if (SettingsStore.getValue("feature_group_calls")) {
-            tabs.push(
-                new Tab(
-                    RoomSettingsTab.Voip,
-                    _td("Voice & Video"),
-                    "mx_RoomSettingsDialog_voiceIcon",
-                    <VoipRoomSettingsTab room={this.state.room} />,
-                ),
-            );
-        }
         tabs.push(
             new Tab(
                 RoomSettingsTab.Security,

@@ -18,7 +18,6 @@ import React from "react";
 import { render, RenderResult } from "@testing-library/react";
 import { ConditionKind, EventType, IPushRule, MatrixEvent } from "matrix-js-sdk/src/matrix";
 import { ClientEvent } from "matrix-js-sdk/src/client";
-import { MediaHandler } from "matrix-js-sdk/src/webrtc/mediaHandler";
 import { logger } from "matrix-js-sdk/src/logger";
 
 import LoggedInView from "../../../src/components/structures/LoggedInView";
@@ -36,11 +35,10 @@ describe("<LoggedInView />", () => {
         getRoom: jest.fn(),
         getSyncState: jest.fn().mockReturnValue(null),
         getSyncStateData: jest.fn().mockReturnValue(null),
-        getMediaHandler: jest.fn(),
         setPushRuleEnabled: jest.fn(),
         setPushRuleActions: jest.fn(),
     });
-    const mediaHandler = new MediaHandler(mockClient);
+
     const mockSdkContext = new TestSdkContext();
 
     const defaultProps = {
@@ -64,7 +62,6 @@ describe("<LoggedInView />", () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        mockClient.getMediaHandler.mockReturnValue(mediaHandler);
         mockClient.setPushRuleActions.mockReset().mockResolvedValue({});
     });
 

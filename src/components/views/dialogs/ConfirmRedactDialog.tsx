@@ -21,7 +21,6 @@ import React from "react";
 import { _t } from "../../../languageHandler";
 import { MatrixClientPeg } from "../../../MatrixClientPeg";
 import Modal from "../../../Modal";
-import { isVoiceBroadcastStartedEvent } from "../../../voice-broadcast/utils/isVoiceBroadcastStartedEvent";
 import ErrorDialog from "./ErrorDialog";
 import TextInputDialog from "./TextInputDialog";
 
@@ -77,18 +76,6 @@ export function createRedactEventDialog({
 
                 const cli = MatrixClientPeg.get();
                 const withRelTypes: Pick<IRedactOpts, "with_rel_types"> = {};
-
-                // redact related events if this is a voice broadcast started event and
-                // server has support for relation based redactions
-                if (isVoiceBroadcastStartedEvent(mxEvent)) {
-                    const relationBasedRedactionsSupport = cli.canSupport.get(Feature.RelationBasedRedactions);
-                    if (
-                        relationBasedRedactionsSupport &&
-                        relationBasedRedactionsSupport !== ServerSupport.Unsupported
-                    ) {
-                        withRelTypes.with_rel_types = [RelationType.Reference];
-                    }
-                }
 
                 try {
                     onCloseDialog?.();

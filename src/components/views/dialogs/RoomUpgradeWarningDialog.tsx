@@ -130,28 +130,6 @@ export default class RoomUpgradeWarningDialog extends React.Component<IProps, IS
                 )}
             </p>
         );
-        if (SdkConfig.get().bug_report_endpoint_url) {
-            bugReports = (
-                <p>
-                    {_t(
-                        "This usually only affects how the room is processed on the server. If you're " +
-                            "having problems with your %(brand)s, please <a>report a bug</a>.",
-                        {
-                            brand,
-                        },
-                        {
-                            a: (sub) => {
-                                return (
-                                    <AccessibleButton kind="link_inline" onClick={this.openBugReportDialog}>
-                                        {sub}
-                                    </AccessibleButton>
-                                );
-                            },
-                        },
-                    )}
-                </p>
-            );
-        }
 
         let footer: JSX.Element;
         if (this.state.progress) {

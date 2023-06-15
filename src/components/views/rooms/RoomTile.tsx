@@ -19,7 +19,6 @@ import React, { createRef } from "react";
 import { Room, RoomEvent } from "matrix-js-sdk/src/models/room";
 import classNames from "classnames";
 
-import type { Call } from "../../../models/Call";
 import { RovingTabIndexWrapper } from "../../../accessibility/RovingTabIndex";
 import AccessibleButton, { ButtonEvent } from "../../views/elements/AccessibleButton";
 import defaultDispatcher from "../../../dispatcher/dispatcher";
@@ -45,9 +44,7 @@ import { ViewRoomPayload } from "../../../dispatcher/payloads/ViewRoomPayload";
 import { KeyBindingAction } from "../../../accessibility/KeyboardShortcuts";
 import { getKeyBindingsManager } from "../../../KeyBindingsManager";
 import { RoomGeneralContextMenu } from "../context_menus/RoomGeneralContextMenu";
-import { CallStore, CallStoreEvent } from "../../../stores/CallStore";
 import { SdkContextClass } from "../../../contexts/SDKContext";
-import { useHasRoomLiveVoiceBroadcast } from "../../../voice-broadcast";
 import { RoomTileSubtitle } from "./RoomTileSubtitle";
 import { shouldShowComponent } from "../../../customisations/helpers/UIComponents";
 import { UIComponent } from "../../../settings/UIFeature";
@@ -69,7 +66,6 @@ interface State {
     selected: boolean;
     notificationsMenuPosition: PartialDOMRect | null;
     generalMenuPosition: PartialDOMRect | null;
-    call: Call | null;
     messagePreview: MessagePreview | null;
 }
 
@@ -96,7 +92,6 @@ export class RoomTile extends React.PureComponent<ClassProps, State> {
             selected: SdkContextClass.instance.roomViewStore.getRoomId() === this.props.room.roomId,
             notificationsMenuPosition: null,
             generalMenuPosition: null,
-            call: CallStore.instance.getCall(this.props.room.roomId),
             // generatePreview() will return nothing if the user has previews disabled
             messagePreview: null,
         };
@@ -162,11 +157,6 @@ export class RoomTile extends React.PureComponent<ClassProps, State> {
         this.notificationState.on(NotificationStateEvents.Update, this.onNotificationUpdate);
         this.roomProps.on(PROPERTY_UPDATED, this.onRoomPropertyUpdate);
         this.props.room.on(RoomEvent.Name, this.onRoomNameUpdate);
-        CallStore.instance.on(CallStoreEvent.Call, this.onCallChanged);
-
-        // Recalculate the call for this room, since it could've changed between
-        // construction and mounting
-        this.setState({ call: CallStore.instance.getCall(this.props.room.roomId) });
     }
 
     public componentWillUnmount(): void {
@@ -179,7 +169,6 @@ export class RoomTile extends React.PureComponent<ClassProps, State> {
         if (this.dispatcherRef) defaultDispatcher.unregister(this.dispatcherRef);
         this.notificationState.off(NotificationStateEvents.Update, this.onNotificationUpdate);
         this.roomProps.off(PROPERTY_UPDATED, this.onRoomPropertyUpdate);
-        CallStore.instance.off(CallStoreEvent.Call, this.onCallChanged);
     }
 
     private onAction = (payload: ActionPayload): void => {
@@ -198,10 +187,6 @@ export class RoomTile extends React.PureComponent<ClassProps, State> {
         if (this.props.room && room.roomId === this.props.room.roomId) {
             this.generatePreview();
         }
-    };
-
-    private onCallChanged = (call: Call, roomId: string): void => {
-        if (roomId === this.props.room?.roomId) this.setState({ call });
     };
 
     private async generatePreview(): Promise<void> {
@@ -369,7 +354,6 @@ export class RoomTile extends React.PureComponent<ClassProps, State> {
      */
     private get shouldRenderSubtitle(): boolean {
         return (
-            !!this.state.call ||
             this.props.hasLiveVoiceBroadcast ||
             (this.props.showMessagePreview && !!this.state.messagePreview)
         );
@@ -403,7 +387,6 @@ export class RoomTile extends React.PureComponent<ClassProps, State> {
 
         const subtitle = this.shouldRenderSubtitle ? (
             <RoomTileSubtitle
-                call={this.state.call}
                 hasLiveVoiceBroadcast={this.props.hasLiveVoiceBroadcast}
                 messagePreview={this.state.messagePreview}
                 roomId={this.props.room.roomId}
@@ -496,8 +479,7 @@ export class RoomTile extends React.PureComponent<ClassProps, State> {
 }
 
 const RoomTileHOC: React.FC<Props> = (props: Props) => {
-    const hasLiveVoiceBroadcast = useHasRoomLiveVoiceBroadcast(props.room);
-    return <RoomTile {...props} hasLiveVoiceBroadcast={hasLiveVoiceBroadcast} />;
+    return <RoomTile {...props} hasLiveVoiceBroadcast={false} />;
 };
 
 export default RoomTileHOC;

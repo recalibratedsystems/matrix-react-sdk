@@ -33,7 +33,6 @@ import MatrixClientContext from "../../../contexts/MatrixClientContext";
 import TextualBody from "./TextualBody";
 import MImageBody from "./MImageBody";
 import MFileBody from "./MFileBody";
-import MVoiceOrAudioBody from "./MVoiceOrAudioBody";
 import MVideoBody from "./MVideoBody";
 import MStickerBody from "./MStickerBody";
 import MPollBody from "./MPollBody";
@@ -43,7 +42,6 @@ import MjolnirBody from "./MjolnirBody";
 import MBeaconBody from "./MBeaconBody";
 import { DecryptionFailureBody } from "./DecryptionFailureBody";
 import { GetRelationsForEvent, IEventTileOps } from "../rooms/EventTile";
-import { VoiceBroadcastBody, VoiceBroadcastInfoEventType, VoiceBroadcastInfoState } from "../../../voice-broadcast";
 
 // onMessageAllowed is handled internally
 interface IProps extends Omit<IBodyProps, "onMessageAllowed" | "mediaEventHelper"> {
@@ -67,7 +65,6 @@ const baseBodyTypes = new Map<string, typeof React.Component>([
     [MsgType.Emote, TextualBody],
     [MsgType.Image, MImageBody],
     [MsgType.File, MFileBody],
-    [MsgType.Audio, MVoiceOrAudioBody],
     [MsgType.Video, MVideoBody],
 ]);
 const baseEvTypes = new Map<string, React.ComponentType<Partial<IBodyProps>>>([
@@ -173,10 +170,6 @@ export default class MessageEvent extends React.Component<IProps> implements IMe
             // TODO: move to eventTypes when location sharing spec stabilises
             if (M_LOCATION.matches(type) || (type === EventType.RoomMessage && msgtype === MsgType.Location)) {
                 BodyType = MLocationBody;
-            }
-
-            if (type === VoiceBroadcastInfoEventType && content?.state === VoiceBroadcastInfoState.Started) {
-                BodyType = VoiceBroadcastBody;
             }
         }
 

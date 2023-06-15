@@ -91,8 +91,6 @@ export enum LabGroup {
 }
 
 export enum Features {
-    VoiceBroadcast = "feature_voice_broadcast",
-    VoiceBroadcastForceSmallChunks = "feature_voice_broadcast_force_small_chunks",
     OidcNativeFlow = "feature_oidc_native_flow",
 }
 
@@ -203,15 +201,7 @@ export const SETTINGS: { [setting: string]: ISetting } = {
                     </p>
                 </>
             ),
-            faq: () =>
-                SdkConfig.get().bug_report_endpoint_url && (
-                    <>
-                        <h4>{_t("How can I create a video room?")}</h4>
-                        <p>{_t("Use the “+” button in the room section of the left panel.")}</p>
-                        <h4>{_t("Can I use text chat alongside the video call?")}</h4>
-                        <p>{_t("Yes, the chat timeline is displayed alongside the video.")}</p>
-                    </>
-                ),
+            faq: () => false,
             feedbackLabel: "video-room-feedback",
             feedbackSubheading: _td(
                 "Thank you for trying the beta, please go into as much detail as you can so we can improve it.",
@@ -432,18 +422,6 @@ export const SETTINGS: { [setting: string]: ISetting } = {
         supportedLevels: LEVELS_FEATURE,
         displayName: _td("Favourite Messages"),
         description: _td("Under active development."),
-        default: false,
-    },
-    [Features.VoiceBroadcast]: {
-        isFeature: true,
-        labsGroup: LabGroup.Messaging,
-        supportedLevels: LEVELS_FEATURE,
-        displayName: _td("Voice broadcast"),
-        default: false,
-    },
-    [Features.VoiceBroadcastForceSmallChunks]: {
-        supportedLevels: LEVELS_DEVICE_ONLY_SETTINGS,
-        displayName: _td("Force 15s voice broadcast chunk length"),
         default: false,
     },
     [Features.OidcNativeFlow]: {

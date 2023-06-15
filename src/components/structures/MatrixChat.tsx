@@ -84,7 +84,6 @@ import {
 import { SettingLevel } from "../../settings/SettingLevel";
 import ThreepidInviteStore, { IThreepidInvite, IThreepidInviteWireFormat } from "../../stores/ThreepidInviteStore";
 import { UIFeature } from "../../settings/UIFeature";
-import DialPadModal from "../views/voip/DialPadModal";
 import { showToast as showMobileGuideToast } from "../../toasts/MobileGuideToast";
 import { shouldUseLoginForWelcome } from "../../utils/pages";
 import RoomListStore from "../../stores/room-list/RoomListStore";
@@ -111,7 +110,6 @@ import { makeRoomPermalink } from "../../utils/permalinks/Permalinks";
 import { copyPlaintext } from "../../utils/strings";
 import { PosthogAnalytics } from "../../PosthogAnalytics";
 import { initSentry } from "../../sentry";
-import LegacyCallHandler from "../../LegacyCallHandler";
 import { showSpaceInvite } from "../../utils/space";
 import AccessibleButton, { ButtonEvent } from "../views/elements/AccessibleButton";
 import { ActionPayload } from "../../dispatcher/payloads";
@@ -125,7 +123,6 @@ import { ViewStartChatOrReusePayload } from "../../dispatcher/payloads/ViewStart
 import { IConfigOptions } from "../../IConfigOptions";
 import { SnakedObject } from "../../utils/SnakedObject";
 import { leaveRoomBehaviour } from "../../utils/leave-behaviour";
-import { CallStore } from "../../stores/CallStore";
 import { IRoomStateEventsActionPayload } from "../../actions/MatrixActionCreators";
 import { ShowThreadPayload } from "../../dispatcher/payloads/ShowThreadPayload";
 import { RightPanelPhases } from "../../stores/right-panel/RightPanelStorePhases";
@@ -136,7 +133,6 @@ import { ValidatedServerConfig } from "../../utils/ValidatedServerConfig";
 import { isLocalRoom } from "../../utils/localRoom/isLocalRoom";
 import { SdkContextClass, SDKContext } from "../../contexts/SDKContext";
 import { viewUserDeviceSettings } from "../../actions/handlers/viewUserDeviceSettings";
-import { cleanUpBroadcasts, VoiceBroadcastResumer } from "../../voice-broadcast";
 import GenericToast from "../views/toasts/GenericToast";
 import RovingSpotlightDialog, { Filter } from "../views/dialogs/spotlight/SpotlightDialog";
 import { findDMForUser } from "../../utils/dm/findDMForUser";
@@ -231,7 +227,6 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
     private focusComposer: boolean;
     private subTitleStatus: string;
     private prevWindowWidth: number;
-    private voiceBroadcastResumer?: VoiceBroadcastResumer;
 
     private readonly loggedInView: React.RefObject<LoggedInViewType>;
     private readonly dispatcherRef: string;
@@ -441,7 +436,6 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
         window.removeEventListener("resize", this.onWindowResized);
 
         this.stores.accountPasswordStore.clearPassword();
-        this.voiceBroadcastResumer?.destroy();
     }
 
     private onWindowResized = (): void => {
@@ -588,11 +582,7 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
                 }
                 break;
             case "logout":
-                LegacyCallHandler.instance.hangupAllCalls();
-                Promise.all([
-                    ...[...CallStore.instance.activeCalls].map((call) => call.disconnect()),
-                    cleanUpBroadcasts(this.stores),
-                ]).finally(() => Lifecycle.logout());
+                Lifecycle.logout();
                 break;
             case "require_registration":
                 startAnyRegistrationFlow(payload as any);
@@ -789,9 +779,6 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
                         this.state.resizeNotifier.notifyLeftHandleResized();
                     },
                 );
-                break;
-            case Action.OpenDialPad:
-                Modal.createDialog(DialPadModal, {}, "mx_Dialog_dialPadWrapper");
                 break;
             case Action.OnLoggedIn:
                 this.stores.client = MatrixClientPeg.get();
@@ -1072,15 +1059,13 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
         if (MatrixClientPeg.get().isGuest()) {
             // No point in making 2 DMs with welcome bot. This assumes view_set_mxid will
             // result in a new DM with the welcome user.
-            if (userId !== snakedConfig.get("welcome_user_id")) {
-                dis.dispatch<DoAfterSyncPreparedPayload<ViewStartChatOrReusePayload>>({
-                    action: Action.DoAfterSyncPrepared,
-                    deferred_action: {
-                        action: Action.ViewStartChatOrReuse,
-                        user_id: userId,
-                    },
-                });
-            }
+            dis.dispatch<DoAfterSyncPreparedPayload<ViewStartChatOrReusePayload>>({
+                action: Action.DoAfterSyncPrepared,
+                deferred_action: {
+                    action: Action.ViewStartChatOrReuse,
+                    user_id: userId,
+                },
+            });
             dis.dispatch({
                 action: "require_registration",
                 // If the set_mxid dialog is cancelled, view /welcome because if the
@@ -1089,7 +1074,7 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
                 // `_chatCreateOrReuse` again)
                 go_welcome_on_cancel: true,
                 screen_after: {
-                    screen: `user/${snakedConfig.get("welcome_user_id")}`,
+                    screen: `user/undefined`,
                     params: { action: "chat" },
                 },
             });
@@ -1223,57 +1208,6 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
     }
 
     /**
-     * Starts a chat with the welcome user, if the user doesn't already have one
-     * @returns {string} The room ID of the new room, or null if no room was created
-     */
-    private async startWelcomeUserChat(): Promise<string | null> {
-        const snakedConfig = new SnakedObject<IConfigOptions>(this.props.config);
-        const welcomeUserId = snakedConfig.get("welcome_user_id");
-        if (!welcomeUserId) return null;
-
-        // We can end up with multiple tabs post-registration where the user
-        // might then end up with a session and we don't want them all making
-        // a chat with the welcome user: try to de-dupe.
-        // We need to wait for the first sync to complete for this to
-        // work though.
-        let waitFor: Promise<void>;
-        if (!this.firstSyncComplete) {
-            waitFor = this.firstSyncPromise.promise;
-        } else {
-            waitFor = Promise.resolve();
-        }
-        await waitFor;
-
-        const welcomeUserRooms = DMRoomMap.shared().getDMRoomsForUserId(welcomeUserId);
-        if (welcomeUserRooms.length === 0) {
-            const roomId = await createRoom(MatrixClientPeg.get(), {
-                dmUserId: snakedConfig.get("welcome_user_id"),
-                // Only view the welcome user if we're NOT looking at a room
-                andView: !this.state.currentRoomId,
-                spinner: false, // we're already showing one: we don't need another one
-            });
-            // This is a bit of a hack, but since the deduplication relies
-            // on m.direct being up to date, we need to force a sync
-            // of the database, otherwise if the user goes to the other
-            // tab before the next save happens (a few minutes), the
-            // saved sync will be restored from the db and this code will
-            // run without the update to m.direct, making another welcome
-            // user room (it doesn't wait for new data from the server, just
-            // the saved sync to be loaded).
-            const saveWelcomeUser = (ev: MatrixEvent): void => {
-                if (ev.getType() === EventType.Direct && ev.getContent()[welcomeUserId]) {
-                    MatrixClientPeg.get().store.save(true);
-                    MatrixClientPeg.get().removeListener(ClientEvent.AccountData, saveWelcomeUser);
-                }
-            };
-            MatrixClientPeg.get().on(ClientEvent.AccountData, saveWelcomeUser);
-
-            return roomId;
-        }
-        return null;
-    }
-
-    /**
      * Called when a new logged in session has started
      */
     private async onLoggedIn(): Promise<void> {
@@ -1323,14 +1257,7 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
             MatrixClientPeg.setJustRegisteredUserId(null);
 
             const snakedConfig = new SnakedObject<IConfigOptions>(this.props.config);
-            if (snakedConfig.get("welcome_user_id") && getCurrentLanguage().startsWith("en")) {
-                const welcomeUserRoom = await this.startWelcomeUserChat();
-                if (welcomeUserRoom === null) {
-                    // We didn't redirect to the welcome user room, so show
-                    // the homepage.
-                    dis.dispatch<ViewHomePagePayload>({ action: Action.ViewHomePage, justRegistered: true });
-                }
-            } else if (ThreepidInviteStore.instance.pickBestInvite()) {
+            if (ThreepidInviteStore.instance.pickBestInvite()) {
                 // The user has a 3pid invite pending - show them that
                 const threepidInvite = ThreepidInviteStore.instance.pickBestInvite();
 
@@ -1676,8 +1603,6 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
                 });
             }
         });
-
-        this.voiceBroadcastResumer = new VoiceBroadcastResumer(cli);
     }
 
     /**

@@ -46,8 +46,6 @@ import { E2EStatus } from "../../../../src/utils/ShieldUtils";
 import { addTextToComposerRTL } from "../../../test-utils/composer";
 import UIStore, { UI_EVENTS } from "../../../../src/stores/UIStore";
 import { Action } from "../../../../src/dispatcher/actions";
-import { VoiceBroadcastInfoState, VoiceBroadcastRecording } from "../../../../src/voice-broadcast";
-import { mkVoiceBroadcastInfoStateEvent } from "../../../voice-broadcast/utils/test-utils";
 import { SdkContextClass } from "../../../../src/contexts/SDKContext";
 
 jest.mock("../../../../src/components/views/rooms/wysiwyg_composer", () => ({
@@ -66,15 +64,6 @@ const startVoiceMessage = async (): Promise<void> => {
         await userEvent.click(screen.getByLabelText("More options"));
         await userEvent.click(screen.getByLabelText("Voice Message"));
     });
-};
-
-const setCurrentBroadcastRecording = (room: Room, state: VoiceBroadcastInfoState): void => {
-    const recording = new VoiceBroadcastRecording(
-        mkVoiceBroadcastInfoStateEvent(room.roomId, state, "@user:example.com", "ABC123"),
-        MatrixClientPeg.safeGet(),
-        state,
-    );
-    SdkContextClass.instance.voiceBroadcastRecordingsStore.setCurrent(recording);
 };
 
 const shouldClearModal = async (): Promise<void> => {
@@ -100,14 +89,11 @@ describe("MessageComposer", () => {
     afterEach(() => {
         jest.useRealTimers();
 
-        SdkContextClass.instance.voiceBroadcastRecordingsStore.clearCurrent();
-
         // restore settings
         act(() => {
             [
                 "MessageComposerInput.showStickersButton",
                 "MessageComposerInput.showPollsButton",
-                Features.VoiceBroadcast,
                 "feature_wysiwyg_composer",
             ].forEach((setting: string): void => {
                 SettingsStore.setValue(setting, null, SettingLevel.DEVICE, SettingsStore.getDefaultValue(setting));
@@ -194,10 +180,6 @@ describe("MessageComposer", () => {
             {
                 setting: "MessageComposerInput.showPollsButton",
                 buttonLabel: "Poll",
-            },
-            {
-                setting: Features.VoiceBroadcast,
-                buttonLabel: "Voice broadcast",
             },
         ].forEach(({ setting, buttonLabel }) => {
             [true, false].forEach((value: boolean) => {
@@ -419,38 +401,6 @@ describe("MessageComposer", () => {
             shouldClearModal();
 
             it("should try to start a voice message", () => {
-                expectVoiceMessageRecordingTriggered();
-            });
-        });
-
-        describe("when recording a voice broadcast and trying to start a voice message", () => {
-            beforeEach(async () => {
-                setCurrentBroadcastRecording(room, VoiceBroadcastInfoState.Started);
-                wrapAndRender({ room });
-                await startVoiceMessage();
-                await waitEnoughCyclesForModal();
-            });
-
-            shouldClearModal();
-
-            it("should not start a voice message and display the info dialog", async () => {
-                expect(screen.queryByLabelText("Stop recording")).not.toBeInTheDocument();
-                expect(screen.getByText("Can't start voice message")).toBeInTheDocument();
-            });
-        });
-
-        describe("when there is a stopped voice broadcast recording and trying to start a voice message", () => {
-            beforeEach(async () => {
-                setCurrentBroadcastRecording(room, VoiceBroadcastInfoState.Stopped);
-                wrapAndRender({ room });
-                await startVoiceMessage();
-                await waitEnoughCyclesForModal();
-            });
-
-            shouldClearModal();
-
-            it("should try to start a voice message and should not display the info dialog", async () => {
-                expect(screen.queryByText("Can't start voice message")).not.toBeInTheDocument();
                 expectVoiceMessageRecordingTriggered();
             });
         });

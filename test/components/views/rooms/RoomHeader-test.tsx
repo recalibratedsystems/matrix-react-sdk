@@ -47,16 +47,9 @@ import { IRoomState } from "../../../../src/components/structures/RoomView";
 import RoomContext from "../../../../src/contexts/RoomContext";
 import SdkConfig from "../../../../src/SdkConfig";
 import SettingsStore from "../../../../src/settings/SettingsStore";
-import { ElementCall, JitsiCall } from "../../../../src/models/Call";
-import { CallStore } from "../../../../src/stores/CallStore";
-import LegacyCallHandler from "../../../../src/LegacyCallHandler";
 import defaultDispatcher from "../../../../src/dispatcher/dispatcher";
 import { Action } from "../../../../src/dispatcher/actions";
 import WidgetStore from "../../../../src/stores/WidgetStore";
-import { WidgetMessagingStore } from "../../../../src/stores/widgets/WidgetMessagingStore";
-import WidgetUtils from "../../../../src/utils/WidgetUtils";
-import { ElementWidgetActions } from "../../../../src/stores/widgets/ElementWidgetActions";
-import MediaDeviceHandler, { MediaDeviceKindEnum } from "../../../../src/MediaDeviceHandler";
 import { shouldShowComponent } from "../../../../src/customisations/helpers/UIComponents";
 import { UIComponent } from "../../../../src/settings/UIFeature";
 
@@ -109,21 +102,15 @@ describe("RoomHeader", () => {
         client.reEmitter.reEmit(room, [RoomStateEvent.Events]);
 
         await Promise.all(
-            [CallStore.instance, WidgetStore.instance].map((store) => setupAsyncStoreWithClient(store, client)),
+            [WidgetStore.instance].map((store) => setupAsyncStoreWithClient(store, client)),
         );
-
-        jest.spyOn(MediaDeviceHandler, "getDevices").mockResolvedValue({
-            [MediaDeviceKindEnum.AudioInput]: [],
-            [MediaDeviceKindEnum.VideoInput]: [],
-            [MediaDeviceKindEnum.AudioOutput]: [],
-        });
 
         DMRoomMap.makeShared(client);
         jest.spyOn(DMRoomMap.shared(), "getUserIdForRoomId").mockReturnValue(carol.userId);
     });
 
     afterEach(async () => {
-        await Promise.all([CallStore.instance, WidgetStore.instance].map(resetAsyncStoreWithClient));
+        await Promise.all([WidgetStore.instance].map(resetAsyncStoreWithClient));
         client.reEmitter.stopReEmitting(room, [RoomStateEvent.Events]);
         jest.restoreAllMocks();
         SdkConfig.reset();
@@ -153,35 +140,6 @@ describe("RoomHeader", () => {
             }),
         ]);
     };
-    const mockLegacyCall = () => {
-        jest.spyOn(LegacyCallHandler.instance, "getCallForRoom").mockReturnValue({} as unknown as MatrixCall);
-    };
-    const withCall = async (fn: (call: ElementCall) => void | Promise<void>): Promise<void> => {
-        await ElementCall.create(room);
-        const call = CallStore.instance.getCall(room.roomId);
-        if (!(call instanceof ElementCall)) throw new Error("Failed to create call");
-
-        const widget = new Widget(call.widget);
-
-        const eventEmitter = new EventEmitter();
-        const messaging = {
-            on: eventEmitter.on.bind(eventEmitter),
-            off: eventEmitter.off.bind(eventEmitter),
-            once: eventEmitter.once.bind(eventEmitter),
-            emit: eventEmitter.emit.bind(eventEmitter),
-            stop: jest.fn(),
-            transport: {
-                send: jest.fn(),
-                reply: jest.fn(),
-            },
-        } as unknown as Mocked<ClientWidgetApi>;
-        WidgetMessagingStore.instance.storeMessaging(widget, call.roomId, messaging);
-
-        await fn(call);
-
-        call.destroy();
-        WidgetMessagingStore.instance.stopMessaging(widget, call.roomId);
-    };
 
     const renderHeader = (props: Partial<RoomHeaderProps> = {}, roomContext: Partial<IRoomState> = {}) => {
         render(
@@ -202,8 +160,6 @@ describe("RoomHeader", () => {
                         scope: SearchScope.Room,
                         count: 0,
                     }}
-                    viewingCall={false}
-                    activeCall={null}
                     {...props}
                 />
             </RoomContext.Provider>,
@@ -217,29 +173,6 @@ describe("RoomHeader", () => {
         renderHeader();
         expect(screen.queryByRole("button", { name: /call/i })).toBeNull();
     });
-
-    it("hides call buttons if showCallButtonsInComposer is disabled", () => {
-        mockEnabledSettings([]);
-
-        renderHeader();
-        expect(screen.queryByRole("button", { name: /call/i })).toBeNull();
-    });
-
-    it(
-        "hides the voice call button and disables the video call button if configured to use Element Call exclusively " +
-            "and there's an ongoing call",
-        async () => {
-            mockEnabledSettings(["showCallButtonsInComposer", "feature_group_calls"]);
-            SdkConfig.put({
-                element_call: { url: "https://call.element.io", use_exclusively: true, brand: "Element Call" },
-            });
-            await ElementCall.create(room);
-
-            renderHeader();
-            expect(screen.queryByRole("button", { name: "Voice call" })).toBeNull();
-            expect(screen.getByRole("button", { name: "Video call" })).toHaveAttribute("aria-disabled", "true");
-        },
-    );
 
     it(
         "hides the voice call button and starts an Element call when the video call button is pressed if configured to " +
@@ -266,342 +199,6 @@ describe("RoomHeader", () => {
             defaultDispatcher.unregister(dispatcherRef);
         },
     );
-
-    it(
-        "hides the voice call button and disables the video call button if configured to use Element Call exclusively " +
-            "and the user lacks permission",
-        () => {
-            mockEnabledSettings(["showCallButtonsInComposer", "feature_group_calls"]);
-            SdkConfig.put({
-                element_call: { url: "https://call.element.io", use_exclusively: true, brand: "Element Call" },
-            });
-            mockEventPowerLevels({ [ElementCall.CALL_EVENT_TYPE.name]: 100 });
-
-            renderHeader();
-            expect(screen.queryByRole("button", { name: "Voice call" })).toBeNull();
-            expect(screen.getByRole("button", { name: "Video call" })).toHaveAttribute("aria-disabled", "true");
-        },
-    );
-
-    it("disables call buttons in the new group call experience if there's an ongoing Element call", async () => {
-        mockEnabledSettings(["showCallButtonsInComposer", "feature_group_calls"]);
-        await ElementCall.create(room);
-
-        renderHeader();
-        expect(screen.getByRole("button", { name: "Voice call" })).toHaveAttribute("aria-disabled", "true");
-        expect(screen.getByRole("button", { name: "Video call" })).toHaveAttribute("aria-disabled", "true");
-    });
-
-    it("disables call buttons in the new group call experience if there's an ongoing legacy 1:1 call", () => {
-        mockEnabledSettings(["showCallButtonsInComposer", "feature_group_calls"]);
-        mockLegacyCall();
-
-        renderHeader();
-        expect(screen.getByRole("button", { name: "Voice call" })).toHaveAttribute("aria-disabled", "true");
-        expect(screen.getByRole("button", { name: "Video call" })).toHaveAttribute("aria-disabled", "true");
-    });
-
-    it("disables call buttons in the new group call experience if there's an existing Jitsi widget", async () => {
-        mockEnabledSettings(["showCallButtonsInComposer", "feature_group_calls"]);
-        await JitsiCall.create(room);
-
-        renderHeader();
-        expect(screen.getByRole("button", { name: "Voice call" })).toHaveAttribute("aria-disabled", "true");
-        expect(screen.getByRole("button", { name: "Video call" })).toHaveAttribute("aria-disabled", "true");
-    });
-
-    it("disables call buttons in the new group call experience if there's no other members", () => {
-        mockEnabledSettings(["showCallButtonsInComposer", "feature_group_calls"]);
-
-        renderHeader();
-        expect(screen.getByRole("button", { name: "Voice call" })).toHaveAttribute("aria-disabled", "true");
-        expect(screen.getByRole("button", { name: "Video call" })).toHaveAttribute("aria-disabled", "true");
-    });
-
-    it(
-        "starts a legacy 1:1 call when call buttons are pressed in the new group call experience if there's 1 other " +
-            "member",
-        async () => {
-            mockEnabledSettings(["showCallButtonsInComposer", "feature_group_calls"]);
-            mockRoomMembers([alice, bob]);
-
-            renderHeader();
-
-            const placeCallSpy = jest.spyOn(LegacyCallHandler.instance, "placeCall").mockResolvedValue(undefined);
-            fireEvent.click(screen.getByRole("button", { name: "Voice call" }));
-            await act(() => Promise.resolve()); // Allow effects to settle
-            expect(placeCallSpy).toHaveBeenCalledWith(room.roomId, CallType.Voice);
-
-            placeCallSpy.mockClear();
-            fireEvent.click(screen.getByRole("button", { name: "Video call" }));
-            await act(() => Promise.resolve()); // Allow effects to settle
-            expect(placeCallSpy).toHaveBeenCalledWith(room.roomId, CallType.Video);
-        },
-    );
-
-    it(
-        "creates a Jitsi widget when call buttons are pressed in the new group call experience if the user lacks " +
-            "permission to start Element calls",
-        async () => {
-            mockEnabledSettings(["showCallButtonsInComposer", "feature_group_calls"]);
-            mockRoomMembers([alice, bob, carol]);
-            mockEventPowerLevels({ [ElementCall.CALL_EVENT_TYPE.name]: 100 });
-
-            renderHeader();
-
-            const placeCallSpy = jest.spyOn(LegacyCallHandler.instance, "placeCall").mockResolvedValue(undefined);
-            fireEvent.click(screen.getByRole("button", { name: "Voice call" }));
-            await act(() => Promise.resolve()); // Allow effects to settle
-            expect(placeCallSpy).toHaveBeenCalledWith(room.roomId, CallType.Voice);
-
-            placeCallSpy.mockClear();
-            fireEvent.click(screen.getByRole("button", { name: "Video call" }));
-            await act(() => Promise.resolve()); // Allow effects to settle
-            expect(placeCallSpy).toHaveBeenCalledWith(room.roomId, CallType.Video);
-        },
-    );
-
-    it(
-        "creates a Jitsi widget when the voice call button is pressed and shows a menu when the video call button is " +
-            "pressed in the new group call experience",
-        async () => {
-            mockEnabledSettings(["showCallButtonsInComposer", "feature_group_calls"]);
-            mockRoomMembers([alice, bob, carol]);
-
-            renderHeader();
-
-            const placeCallSpy = jest.spyOn(LegacyCallHandler.instance, "placeCall").mockResolvedValue(undefined);
-            fireEvent.click(screen.getByRole("button", { name: "Voice call" }));
-            await act(() => Promise.resolve()); // Allow effects to settle
-            expect(placeCallSpy).toHaveBeenCalledWith(room.roomId, CallType.Voice);
-
-            // First try creating a Jitsi widget from the menu
-            placeCallSpy.mockClear();
-            fireEvent.click(screen.getByRole("button", { name: "Video call" }));
-            fireEvent.click(getByRole(screen.getByRole("menu"), "menuitem", { name: /jitsi/i }));
-            await act(() => Promise.resolve()); // Allow effects to settle
-            expect(placeCallSpy).toHaveBeenCalledWith(room.roomId, CallType.Video);
-
-            // Then try starting an Element call from the menu
-            const dispatcherSpy = jest.fn();
-            const dispatcherRef = defaultDispatcher.register(dispatcherSpy);
-            fireEvent.click(screen.getByRole("button", { name: "Video call" }));
-            fireEvent.click(getByRole(screen.getByRole("menu"), "menuitem", { name: /element/i }));
-            await waitFor(() =>
-                expect(dispatcherSpy).toHaveBeenCalledWith({
-                    action: Action.ViewRoom,
-                    room_id: room.roomId,
-                    view_call: true,
-                }),
-            );
-            defaultDispatcher.unregister(dispatcherRef);
-        },
-    );
-
-    it(
-        "disables the voice call button and starts an Element call when the video call button is pressed in the new " +
-            "group call experience if the user lacks permission to edit widgets",
-        async () => {
-            mockEnabledSettings(["showCallButtonsInComposer", "feature_group_calls"]);
-            mockRoomMembers([alice, bob, carol]);
-            mockEventPowerLevels({ "im.vector.modular.widgets": 100 });
-
-            renderHeader();
-            expect(screen.getByRole("button", { name: "Voice call" })).toHaveAttribute("aria-disabled", "true");
-
-            const dispatcherSpy = jest.fn();
-            const dispatcherRef = defaultDispatcher.register(dispatcherSpy);
-            fireEvent.click(screen.getByRole("button", { name: "Video call" }));
-            await waitFor(() =>
-                expect(dispatcherSpy).toHaveBeenCalledWith({
-                    action: Action.ViewRoom,
-                    room_id: room.roomId,
-                    view_call: true,
-                }),
-            );
-            defaultDispatcher.unregister(dispatcherRef);
-        },
-    );
-
-    it("disables call buttons in the new group call experience if the user lacks permission", () => {
-        mockEnabledSettings(["showCallButtonsInComposer", "feature_group_calls"]);
-        mockRoomMembers([alice, bob, carol]);
-        mockEventPowerLevels({ [ElementCall.CALL_EVENT_TYPE.name]: 100, "im.vector.modular.widgets": 100 });
-
-        renderHeader();
-        expect(screen.getByRole("button", { name: "Voice call" })).toHaveAttribute("aria-disabled", "true");
-        expect(screen.getByRole("button", { name: "Video call" })).toHaveAttribute("aria-disabled", "true");
-    });
-
-    it("disables call buttons if there's an ongoing legacy 1:1 call", () => {
-        mockEnabledSettings(["showCallButtonsInComposer"]);
-        mockLegacyCall();
-
-        renderHeader();
-        expect(screen.getByRole("button", { name: "Voice call" })).toHaveAttribute("aria-disabled", "true");
-        expect(screen.getByRole("button", { name: "Video call" })).toHaveAttribute("aria-disabled", "true");
-    });
-
-    it("disables call buttons if there's an existing Jitsi widget", async () => {
-        mockEnabledSettings(["showCallButtonsInComposer"]);
-        await JitsiCall.create(room);
-
-        renderHeader();
-        expect(screen.getByRole("button", { name: "Voice call" })).toHaveAttribute("aria-disabled", "true");
-        expect(screen.getByRole("button", { name: "Video call" })).toHaveAttribute("aria-disabled", "true");
-    });
-
-    it("disables call buttons if there's no other members", () => {
-        mockEnabledSettings(["showCallButtonsInComposer"]);
-
-        renderHeader();
-        expect(screen.getByRole("button", { name: "Voice call" })).toHaveAttribute("aria-disabled", "true");
-        expect(screen.getByRole("button", { name: "Video call" })).toHaveAttribute("aria-disabled", "true");
-    });
-
-    it("starts a legacy 1:1 call when call buttons are pressed if there's 1 other member", async () => {
-        mockEnabledSettings(["showCallButtonsInComposer"]);
-        mockRoomMembers([alice, bob]);
-        mockEventPowerLevels({ "im.vector.modular.widgets": 100 }); // Just to verify that it doesn't try to use Jitsi
-
-        renderHeader();
-
-        const placeCallSpy = jest.spyOn(LegacyCallHandler.instance, "placeCall").mockResolvedValue(undefined);
-        fireEvent.click(screen.getByRole("button", { name: "Voice call" }));
-        await act(() => Promise.resolve()); // Allow effects to settle
-        expect(placeCallSpy).toHaveBeenCalledWith(room.roomId, CallType.Voice);
-
-        placeCallSpy.mockClear();
-        fireEvent.click(screen.getByRole("button", { name: "Video call" }));
-        await act(() => Promise.resolve()); // Allow effects to settle
-        expect(placeCallSpy).toHaveBeenCalledWith(room.roomId, CallType.Video);
-    });
-
-    it("creates a Jitsi widget when call buttons are pressed", async () => {
-        mockEnabledSettings(["showCallButtonsInComposer"]);
-        mockRoomMembers([alice, bob, carol]);
-
-        renderHeader();
-
-        const placeCallSpy = jest.spyOn(LegacyCallHandler.instance, "placeCall").mockResolvedValue(undefined);
-        fireEvent.click(screen.getByRole("button", { name: "Voice call" }));
-        await act(() => Promise.resolve()); // Allow effects to settle
-        expect(placeCallSpy).toHaveBeenCalledWith(room.roomId, CallType.Voice);
-
-        placeCallSpy.mockClear();
-        fireEvent.click(screen.getByRole("button", { name: "Video call" }));
-        await act(() => Promise.resolve()); // Allow effects to settle
-        expect(placeCallSpy).toHaveBeenCalledWith(room.roomId, CallType.Video);
-    });
-
-    it("disables call buttons if the user lacks permission", () => {
-        mockEnabledSettings(["showCallButtonsInComposer"]);
-        mockRoomMembers([alice, bob, carol]);
-        mockEventPowerLevels({ "im.vector.modular.widgets": 100 });
-
-        renderHeader();
-        expect(screen.getByRole("button", { name: "Voice call" })).toHaveAttribute("aria-disabled", "true");
-        expect(screen.getByRole("button", { name: "Video call" })).toHaveAttribute("aria-disabled", "true");
-    });
-
-    it("shows a close button when viewing a call lobby that returns to the timeline when pressed", async () => {
-        mockEnabledSettings(["feature_group_calls"]);
-
-        renderHeader({ viewingCall: true });
-
-        const dispatcherSpy = jest.fn();
-        const dispatcherRef = defaultDispatcher.register(dispatcherSpy);
-        fireEvent.click(screen.getByRole("button", { name: /close/i }));
-        await waitFor(() =>
-            expect(dispatcherSpy).toHaveBeenCalledWith({
-                action: Action.ViewRoom,
-                room_id: room.roomId,
-                view_call: false,
-            }),
-        );
-        defaultDispatcher.unregister(dispatcherRef);
-    });
-
-    it("shows a reduce button when viewing a call that returns to the timeline when pressed", async () => {
-        mockEnabledSettings(["feature_group_calls"]);
-
-        await withCall(async (call) => {
-            renderHeader({ viewingCall: true, activeCall: call });
-
-            const dispatcherSpy = jest.fn();
-            const dispatcherRef = defaultDispatcher.register(dispatcherSpy);
-            fireEvent.click(screen.getByRole("button", { name: /timeline/i }));
-            await waitFor(() =>
-                expect(dispatcherSpy).toHaveBeenCalledWith({
-                    action: Action.ViewRoom,
-                    room_id: room.roomId,
-                    view_call: false,
-                }),
-            );
-            defaultDispatcher.unregister(dispatcherRef);
-        });
-    });
-
-    it("shows a layout button when viewing a call that shows a menu when pressed", async () => {
-        mockEnabledSettings(["feature_group_calls"]);
-
-        await withCall(async (call) => {
-            await call.connect();
-            const messaging = WidgetMessagingStore.instance.getMessagingForUid(WidgetUtils.getWidgetUid(call.widget))!;
-            renderHeader({ viewingCall: true, activeCall: call });
-
-            // Should start with Freedom selected
-            fireEvent.click(screen.getByRole("button", { name: /layout/i }));
-            screen.getByRole("menuitemradio", { name: "Freedom", checked: true });
-
-            // Clicking Spotlight should tell the widget to switch and close the menu
-            fireEvent.click(screen.getByRole("menuitemradio", { name: "Spotlight" }));
-            expect(mocked(messaging.transport).send).toHaveBeenCalledWith(ElementWidgetActions.SpotlightLayout, {});
-            expect(screen.queryByRole("menu")).toBeNull();
-
-            // When the widget responds and the user reopens the menu, they should see Spotlight selected
-            act(() => {
-                messaging.emit(
-                    `action:${ElementWidgetActions.SpotlightLayout}`,
-                    new CustomEvent("widgetapirequest", { detail: { data: {} } }),
-                );
-            });
-            fireEvent.click(screen.getByRole("button", { name: /layout/i }));
-            screen.getByRole("menuitemradio", { name: "Spotlight", checked: true });
-
-            // Now try switching back to Freedom
-            fireEvent.click(screen.getByRole("menuitemradio", { name: "Freedom" }));
-            expect(mocked(messaging.transport).send).toHaveBeenCalledWith(ElementWidgetActions.TileLayout, {});
-            expect(screen.queryByRole("menu")).toBeNull();
-
-            // When the widget responds and the user reopens the menu, they should see Freedom selected
-            act(() => {
-                messaging.emit(
-                    `action:${ElementWidgetActions.TileLayout}`,
-                    new CustomEvent("widgetapirequest", { detail: { data: {} } }),
-                );
-            });
-            fireEvent.click(screen.getByRole("button", { name: /layout/i }));
-            screen.getByRole("menuitemradio", { name: "Freedom", checked: true });
-        });
-    });
-
-    it("shows an invite button in video rooms", () => {
-        mockEnabledSettings(["feature_video_rooms", "feature_element_call_video_rooms"]);
-        mockRoomType(RoomType.UnstableCall);
-
-        const onInviteClick = jest.fn();
-        renderHeader({ onInviteClick, viewingCall: true });
-
-        fireEvent.click(screen.getByRole("button", { name: /invite/i }));
-        expect(onInviteClick).toHaveBeenCalled();
-    });
-
-    it("hides the invite button in non-video rooms when viewing a call", () => {
-        renderHeader({ onInviteClick: () => {}, viewingCall: true });
-
-        expect(screen.queryByRole("button", { name: /invite/i })).toBeNull();
-    });
 
     it("shows the room avatar in a room with only ourselves", () => {
         // When we render a non-DM room with 1 person in it
@@ -815,8 +412,6 @@ function mountHeader(room: Room, propsOverride = {}, roomContext?: Partial<IRoom
             scope: SearchScope.Room,
             count: 0,
         },
-        viewingCall: false,
-        activeCall: null,
         ...propsOverride,
     };
 

@@ -76,19 +76,7 @@ export default class TileErrorBoundary extends React.Component<IProps, IState> {
                 mx_EventTile_content: true,
                 mx_EventTile_tileError: true,
             };
-
-            let submitLogsButton;
-            if (SdkConfig.get().bug_report_endpoint_url) {
-                submitLogsButton = (
-                    <>
-                        &nbsp;
-                        <AccessibleButton kind="link" onClick={this.onBugReport}>
-                            {_t("Submit logs")}
-                        </AccessibleButton>
-                    </>
-                );
-            }
-
+            
             let viewSourceButton;
             if (mxEvent && SettingsStore.getValue("developerMode")) {
                 viewSourceButton = (
@@ -107,7 +95,6 @@ export default class TileErrorBoundary extends React.Component<IProps, IState> {
                         <span>
                             {_t("Can't load this message")}
                             {mxEvent && ` (${mxEvent.getType()})`}
-                            {submitLogsButton}
                             {viewSourceButton}
                         </span>
                     </div>

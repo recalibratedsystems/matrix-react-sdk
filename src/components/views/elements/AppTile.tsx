@@ -38,7 +38,6 @@ import { WidgetType } from "../../../widgets/WidgetType";
 import { ElementWidget, StopGapWidget } from "../../../stores/widgets/StopGapWidget";
 import { WidgetContextMenu } from "../context_menus/WidgetContextMenu";
 import WidgetAvatar from "../avatars/WidgetAvatar";
-import LegacyCallHandler from "../../../LegacyCallHandler";
 import { IApp, isAppWidget } from "../../../stores/WidgetStore";
 import { Icon as CollapseIcon } from "../../../../res/img/element-icons/minimise-collapse.svg";
 import { Icon as MaximiseIcon } from "../../../../res/img/element-icons/maximise-expand.svg";
@@ -412,10 +411,6 @@ export default class AppTile extends React.Component<IProps, IState> {
             // event the iframe doesn't wink away.
             // This is relative to where the Element instance is located.
             this.iframe.src = "about:blank";
-        }
-
-        if (WidgetType.JITSI.matches(this.props.app.type) && this.props.room) {
-            LegacyCallHandler.instance.hangupCallApp(this.props.room.roomId);
         }
 
         // Delete the widget from the persisted store for good measure.

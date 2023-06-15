@@ -125,12 +125,7 @@ export enum Action {
      * Changes room based on room list order and payload parameters. Should be used with ViewRoomDeltaPayload.
      */
     ViewRoomDelta = "view_room_delta",
-
-    /**
-     * Opens the modal dial pad
-     */
-    OpenDialPad = "open_dial_pad",
-
+    
     /**
      * Dial the phone number in the payload
      * payload: DialNumberPayload
