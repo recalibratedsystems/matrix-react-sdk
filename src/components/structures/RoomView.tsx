@@ -57,7 +57,6 @@ import ScrollPanel from "./ScrollPanel";
 import TimelinePanel from "./TimelinePanel";
 import ErrorBoundary from "../views/elements/ErrorBoundary";
 import RoomPreviewBar from "../views/rooms/RoomPreviewBar";
-import RoomPreviewCard from "../views/rooms/RoomPreviewCard";
 import SearchBar, { SearchScope } from "../views/rooms/SearchBar";
 import RoomUpgradeWarningBar from "../views/rooms/RoomUpgradeWarningBar";
 import AuxPanel from "../views/rooms/AuxPanel";
@@ -105,8 +104,6 @@ import { LargeLoader } from "./LargeLoader";
 import { SDKContext } from "../../contexts/SDKContext";
 import { RoomSearchView } from "./RoomSearchView";
 import eventSearch from "../../Searching";
-import { WidgetType } from "../../widgets/WidgetType";
-import WidgetUtils from "../../utils/WidgetUtils";
 import { shouldEncryptRoomWithSingle3rdPartyInvite } from "../../utils/room/shouldEncryptRoomWithSingle3rdPartyInvite";
 import { WaitingForThirdPartyRoomView } from "./WaitingForThirdPartyRoomView";
 
@@ -473,7 +470,6 @@ export class RoomView extends React.Component<IRoomProps, IRoomState> {
     private onWidgetStoreUpdate = (): void => {
         if (!this.state.room) return;
         this.checkWidgets(this.state.room);
-        this.doMaybeRemoveOwnJitsiWidget();
     };
 
     private onWidgetEchoStoreUpdate = (): void => {
@@ -493,56 +489,6 @@ export class RoomView extends React.Component<IRoomProps, IRoomState> {
         }
         this.checkWidgets(this.state.room);
     };
-
-    /**
-     * Removes the Jitsi widget from the current user if
-     * - Multiple Jitsi widgets have been added within {@link PREVENT_MULTIPLE_JITSI_WITHIN}
-     * - The last (server timestamp) of these widgets is from the currrent user
-     * This solves the issue if some people decide to start a conference and click the call button at the same time.
-     */
-    private doMaybeRemoveOwnJitsiWidget(): void {
-        if (!this.state.roomId || !this.state.room || !this.context.client) return;
-
-        const apps = this.context.widgetStore.getApps(this.state.roomId);
-        const jitsiApps = apps.filter((app) => app.eventId && WidgetType.JITSI.matches(app.type));
-
-        // less than two Jitsi widgets → nothing to do
-        if (jitsiApps.length < 2) return;
-
-        const currentUserId = this.context.client.getSafeUserId();
-        const createdByCurrentUser = jitsiApps.find((apps) => apps.creatorUserId === currentUserId);
-
-        // no Jitsi widget from current user → nothing to do
-        if (!createdByCurrentUser) return;
-
-        const createdByCurrentUserEvent = this.state.room.findEventById(createdByCurrentUser.eventId!);
-
-        // widget event not found → nothing can be done
-        if (!createdByCurrentUserEvent) return;
-
-        const createdByCurrentUserTs = createdByCurrentUserEvent.getTs();
-
-        // widget timestamp is empty → nothing can be done
-        if (!createdByCurrentUserTs) return;
-
-        const lastCreatedByOtherTs = jitsiApps.reduce((maxByNow: number, app) => {
-            if (app.eventId === createdByCurrentUser.eventId) return maxByNow;
-
-            const appCreateTs = this.state.room!.findEventById(app.eventId!)?.getTs() || 0;
-            return Math.max(maxByNow, appCreateTs);
-        }, 0);
-
-        // last widget timestamp from other is empty → nothing can be done
-        if (!lastCreatedByOtherTs) return;
-
-        if (
-            createdByCurrentUserTs > lastCreatedByOtherTs &&
-            createdByCurrentUserTs - lastCreatedByOtherTs < PREVENT_MULTIPLE_JITSI_WITHIN
-        ) {
-            // more than one Jitsi widget with the last one from the current user → remove it
-            WidgetUtils.setRoomWidget(this.context.client, this.state.roomId, createdByCurrentUser.id);
-        }
-    }
 
     private checkWidgets = (room: Room): void => {
         this.setState({

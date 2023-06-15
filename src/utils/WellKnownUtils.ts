@@ -23,12 +23,6 @@ const E2EE_WK_KEY_DEPRECATED = "im.vector.riot.e2ee";
 export const TILE_SERVER_WK_KEY = new UnstableValue("m.tile_server", "org.matrix.msc3488.tile_server");
 const EMBEDDED_PAGES_WK_PROPERTY = "io.element.embedded_pages";
 
-/* eslint-disable camelcase */
-export interface ICallBehaviourWellKnown {
-    widget_build_url?: string;
-    ignore_dm?: boolean;
-}
-
 export interface IE2EEWellKnown {
     default?: boolean;
     secure_backup_required?: boolean;
@@ -43,11 +37,6 @@ export interface IEmbeddedPagesWellKnown {
     home_url?: string;
 }
 /* eslint-enable camelcase */
-
-export function getCallBehaviourWellKnown(matrixClient: MatrixClient): ICallBehaviourWellKnown {
-    const clientWellKnown = matrixClient.getClientWellKnown();
-    return clientWellKnown?.[CALL_BEHAVIOUR_WK_KEY];
-}
 
 export function getE2EEWellKnown(matrixClient: MatrixClient): IE2EEWellKnown | null {
     const clientWellKnown = matrixClient.getClientWellKnown();

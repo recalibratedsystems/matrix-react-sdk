@@ -32,15 +32,6 @@ export const DEFAULTS: DeepReadonly<IConfigOptions> = {
     integrations_rest_url: "https://scalar.vector.im/api",
     uisi_autorageshake_app: "element-auto-uisi",
 
-    jitsi: {
-        preferred_domain: "meet.element.io",
-    },
-    element_call: {
-        url: "https://call.element.io",
-        use_exclusively: false,
-        participant_limit: 8,
-        brand: "Element Call",
-    },
 
     // @ts-ignore - we deliberately use the camelCase version here so we trigger
     // the fallback behaviour. If we used the snake_case version then we'd break

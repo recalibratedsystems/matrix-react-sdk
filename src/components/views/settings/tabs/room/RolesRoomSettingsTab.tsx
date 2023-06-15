@@ -450,10 +450,7 @@ export default class RolesRoomSettingsTab extends React.Component<IProps> {
                 }
 
                 let label = plEventsToLabels[eventType];
-                if (label) {
-                    const brand = SdkConfig.get("element_call").brand ?? DEFAULTS.element_call.brand;
-                    label = _t(label, { brand });
-                } else {
+                if (!label) {
                     label = _t("Send %(eventType)s events", { eventType });
                 }
                 return (

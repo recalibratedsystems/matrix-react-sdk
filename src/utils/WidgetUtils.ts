@@ -489,42 +489,6 @@ export default class WidgetUtils {
         return app as IApp;
     }
 
-    public static getLocalJitsiWrapperUrl(opts: { forLocalRender?: boolean; auth?: string } = {}): string {
-        // NB. we can't just encodeURIComponent all of these because the $ signs need to be there
-        const queryStringParts = [
-            "conferenceDomain=$domain",
-            "conferenceId=$conferenceId",
-            "isAudioOnly=$isAudioOnly",
-            "startWithAudioMuted=$startWithAudioMuted",
-            "startWithVideoMuted=$startWithVideoMuted",
-            "isVideoChannel=$isVideoChannel",
-            "displayName=$matrix_display_name",
-            "avatarUrl=$matrix_avatar_url",
-            "userId=$matrix_user_id",
-            "roomId=$matrix_room_id",
-            "theme=$theme",
-            "roomName=$roomName",
-            `supportsScreensharing=${PlatformPeg.get()?.supportsJitsiScreensharing()}`,
-            "language=$org.matrix.msc2873.client_language",
-        ];
-        if (opts.auth) {
-            queryStringParts.push(`auth=${opts.auth}`);
-        }
-        const queryString = queryStringParts.join("&");
-
-        let baseUrl = window.location.href;
-        if (window.location.protocol !== "https:" && !opts.forLocalRender) {
-            // Use an external wrapper if we're not locally rendering the widget. This is usually
-            // the URL that will end up in the widget event, so we want to make sure it's relatively
-            // safe to send.
-            // We'll end up using a local render URL when we see a Jitsi widget anyways, so this is
-            // really just for backwards compatibility and to appease the spec.
-            baseUrl = "https://app.element.io/";
-        }
-        const url = new URL("jitsi.html#" + queryString, baseUrl); // this strips hash fragment from baseUrl
-        return url.href;
-    }
-
     public static getWidgetName(app?: IWidget): string {
         return app?.name?.trim() || _t("Unknown App");
     }

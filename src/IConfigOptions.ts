@@ -105,24 +105,7 @@ export interface IConfigOptions {
         environment?: string; // "production", etc
     };
 
-    widget_build_url?: string; // url called to replace jitsi/call widget creation
-    widget_build_url_ignore_dm?: boolean;
     audio_stream_url?: string;
-    jitsi?: {
-        preferred_domain: string;
-    };
-    jitsi_widget?: {
-        skip_built_in_welcome_screen?: boolean;
-    };
-    voip?: {
-        obey_asserted_identity?: boolean; // MSC3086
-    };
-    element_call: {
-        url?: string;
-        use_exclusively?: boolean;
-        participant_limit?: number;
-        brand?: string;
-    };
 
     logout_redirect_url?: string;
 
