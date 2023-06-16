@@ -20,7 +20,6 @@ import { MatrixEvent, Room } from "matrix-js-sdk/src/matrix";
 
 import DMRoomMap from "../../../../src/utils/DMRoomMap";
 import RoomSummaryCard from "../../../../src/components/views/right_panel/RoomSummaryCard";
-import ShareDialog from "../../../../src/components/views/dialogs/ShareDialog";
 import ExportDialog from "../../../../src/components/views/dialogs/ExportDialog";
 import MatrixClientContext from "../../../../src/contexts/MatrixClientContext";
 import defaultDispatcher from "../../../../src/dispatcher/dispatcher";
@@ -79,8 +78,6 @@ describe("<RoomSummaryCard />", () => {
         DMRoomMap.makeShared(mockClient);
 
         mockClient.getRoom.mockReturnValue(room);
-        jest.spyOn(room, "isElementVideoRoom").mockRestore();
-        jest.spyOn(room, "isCallRoom").mockRestore();
         featureEnabledSpy.mockReset().mockReturnValue(false);
     });
 
@@ -111,14 +108,6 @@ describe("<RoomSummaryCard />", () => {
         fireEvent.click(getByText("Export chat"));
 
         expect(modalSpy).toHaveBeenCalledWith(ExportDialog, { room });
-    });
-
-    it("opens share room dialog on button click", () => {
-        const { getByText } = getComponent();
-
-        fireEvent.click(getByText("Share room"));
-
-        expect(modalSpy).toHaveBeenCalledWith(ShareDialog, { target: room });
     });
 
     it("opens room settings on button click", () => {

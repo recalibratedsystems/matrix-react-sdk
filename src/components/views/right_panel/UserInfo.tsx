@@ -58,7 +58,6 @@ import PowerSelector from "../elements/PowerSelector";
 import MemberAvatar from "../avatars/MemberAvatar";
 import PresenceLabel from "../rooms/PresenceLabel";
 import BulkRedactDialog from "../dialogs/BulkRedactDialog";
-import ShareDialog from "../dialogs/ShareDialog";
 import ErrorDialog from "../dialogs/ErrorDialog";
 import QuestionDialog from "../dialogs/QuestionDialog";
 import ConfirmUserActionDialog from "../dialogs/ConfirmUserActionDialog";
@@ -360,11 +359,6 @@ export const UserOptionsSection: React.FC<{
     let readReceiptButton: JSX.Element | undefined;
 
     const isMe = member.userId === cli.getUserId();
-    const onShareUserClick = (): void => {
-        Modal.createDialog(ShareDialog, {
-            target: member,
-        });
-    };
 
     const unignore = useCallback(() => {
         const ignoredUsers = cli.getIgnoredUsers();
@@ -490,12 +484,6 @@ export const UserOptionsSection: React.FC<{
         }
     }
 
-    const shareUserButton = (
-        <AccessibleButton kind="link" onClick={onShareUserClick} className="mx_UserInfo_field">
-            {_t("Share Link to User")}
-        </AccessibleButton>
-    );
-
     const directMessageButton = isMe ? null : <MessageButton member={member} />;
 
     return (
@@ -504,7 +492,6 @@ export const UserOptionsSection: React.FC<{
             <div>
                 {directMessageButton}
                 {readReceiptButton}
-                {shareUserButton}
                 {insertPillButton}
                 {inviteUserButton}
                 {ignoreButton}

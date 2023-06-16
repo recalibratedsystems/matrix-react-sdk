@@ -27,7 +27,6 @@ import AccessibleButton, { ButtonEvent, IAccessibleButtonProps } from "../elemen
 import defaultDispatcher from "../../../dispatcher/dispatcher";
 import { RightPanelPhases } from "../../../stores/right-panel/RightPanelStorePhases";
 import Modal from "../../../Modal";
-import ShareDialog from "../dialogs/ShareDialog";
 import { useEventEmitter } from "../../../hooks/useEventEmitter";
 import WidgetUtils from "../../../utils/WidgetUtils";
 import { IntegrationManagers } from "../../../integrations/IntegrationManagers";
@@ -275,12 +274,6 @@ const onRoomSettingsClick = (ev: ButtonEvent): void => {
 const RoomSummaryCard: React.FC<IProps> = ({ room, permalinkCreator, onClose }) => {
     const cli = useContext(MatrixClientContext);
 
-    const onShareRoomClick = (): void => {
-        Modal.createDialog(ShareDialog, {
-            target: room,
-        });
-    };
-
     const onRoomExportClick = async (): Promise<void> => {
         Modal.createDialog(ExportDialog, {
             room,
@@ -352,13 +345,6 @@ const RoomSummaryCard: React.FC<IProps> = ({ room, permalinkCreator, onClose }) 
                 )}
                 <Button className="mx_RoomSummaryCard_icon_export" onClick={onRoomExportClick}>
                     {_t("Export chat")}
-                </Button>
-                <Button
-                    data-testid="shareRoomButton"
-                    className="mx_RoomSummaryCard_icon_share"
-                    onClick={onShareRoomClick}
-                >
-                    {_t("Share room")}
                 </Button>
                 <Button className="mx_RoomSummaryCard_icon_settings" onClick={onRoomSettingsClick}>
                     {_t("Room settings")}

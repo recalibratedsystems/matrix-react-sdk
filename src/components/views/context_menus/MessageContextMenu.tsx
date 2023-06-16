@@ -42,7 +42,6 @@ import ContextMenu, { toRightOf, MenuProps } from "../../structures/ContextMenu"
 import ReactionPicker from "../emojipicker/ReactionPicker";
 import ViewSource from "../../structures/ViewSource";
 import { createRedactEventDialog } from "../dialogs/ConfirmRedactDialog";
-import ShareDialog from "../dialogs/ShareDialog";
 import RoomContext, { TimelineRenderingType } from "../../../contexts/RoomContext";
 import { ComposerInsertPayload } from "../../../dispatcher/payloads/ComposerInsertPayload";
 import EndPollDialog from "../dialogs/EndPollDialog";
@@ -290,15 +289,6 @@ export default class MessageContextMenu extends React.Component<IProps, IState> 
         this.closeMenu();
     };
 
-    private onShareClick = (e: ButtonEvent): void => {
-        e.preventDefault();
-        Modal.createDialog(ShareDialog, {
-            target: this.props.mxEvent,
-            permalinkCreator: this.props.permalinkCreator,
-        });
-        this.closeMenu();
-    };
-
     private onCopyLinkClick = (e: ButtonEvent): void => {
         e.preventDefault(); // So that we don't open the permalink
         if (!this.props.link) return;
@@ -395,7 +385,6 @@ export default class MessageContextMenu extends React.Component<IProps, IState> 
         const eventStatus = mxEvent.status;
         const unsentReactionsCount = this.getUnsentReactions().length;
         const contentActionable = isContentActionable(mxEvent);
-        const permalink = this.props.permalinkCreator?.forEvent(this.props.mxEvent.getId()!);
         // status is SENT before remote-echo, null after
         const isSent = !eventStatus || eventStatus === EventStatus.SENT;
         const { timelineRenderingType, canReact, canSendMessages } = this.context;
@@ -484,26 +473,6 @@ export default class MessageContextMenu extends React.Component<IProps, IState> 
                     iconClassName="mx_MessageContextMenu_iconUnhidePreview"
                     label={_t("Show preview")}
                     onClick={this.onUnhidePreviewClick}
-                />
-            );
-        }
-
-        let permalinkButton: JSX.Element | undefined;
-        if (permalink) {
-            permalinkButton = (
-                <IconizedContextMenuOption
-                    iconClassName="mx_MessageContextMenu_iconPermalink"
-                    onClick={this.onShareClick}
-                    label={_t("Share")}
-                    element="a"
-                    {
-                        // XXX: Typescript signature for AccessibleButton doesn't work properly for non-inputs like `a`
-                        ...{
-                            href: permalink,
-                            target: "_blank",
-                            rel: "noreferrer noopener",
-                        }
-                    }
                 />
             );
         }
@@ -707,7 +676,6 @@ export default class MessageContextMenu extends React.Component<IProps, IState> 
                 {quoteButton}
                 {forwardButton}
                 {pinButton}
-                {permalinkButton}
                 {reportEventButton}
                 {externalURLButton}
                 {jumpToRelatedEventButton}
