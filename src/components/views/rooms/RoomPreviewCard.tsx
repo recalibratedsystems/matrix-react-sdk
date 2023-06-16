@@ -50,9 +50,6 @@ interface IProps {
 // and viewing invite reasons to achieve parity with the default invite screen.
 const RoomPreviewCard: FC<IProps> = ({ room, onJoinButtonClicked, onRejectButtonClicked }) => {
     const cli = useContext(MatrixClientContext);
-    const videoRoomsEnabled = useFeatureEnabled("feature_video_rooms");
-    const elementCallVideoRoomsEnabled = useFeatureEnabled("feature_element_call_video_rooms");
-    const isVideoRoom = room.isElementVideoRoom() || (elementCallVideoRoomsEnabled && room.isCallRoom());
     const myMembership = useMyRoomMembership(room);
     useDispatcher(defaultDispatcher, (payload) => {
         if (payload.action === Action.JoinRoomError && payload.roomId === room.roomId) {
@@ -158,15 +155,7 @@ const RoomPreviewCard: FC<IProps> = ({ room, onJoinButtonClicked, onRejectButton
     }
 
     let avatarRow: JSX.Element;
-    if (isVideoRoom) {
-        avatarRow = (
-            <>
-                <RoomAvatar room={room} height={50} width={50} viewAvatarOnClick />
-                <div className="mx_RoomPreviewCard_video" />
-                <BetaPill onClick={viewLabs} tooltipTitle={_t("Video rooms are a beta feature")} />
-            </>
-        );
-    } else if (room.isSpaceRoom()) {
+    if (room.isSpaceRoom()) {
         avatarRow = <RoomAvatar room={room} height={80} width={80} viewAvatarOnClick />;
     } else {
         avatarRow = <RoomAvatar room={room} height={50} width={50} viewAvatarOnClick />;
@@ -177,17 +166,6 @@ const RoomPreviewCard: FC<IProps> = ({ room, onJoinButtonClicked, onRejectButton
         notice = _t("To view %(roomName)s, you need an invite", {
             roomName: room.name,
         });
-    } else if (isVideoRoom && !videoRoomsEnabled) {
-        notice =
-            myMembership === "join"
-                ? _t("To view, please enable video rooms in Labs first")
-                : _t("To join, please enable video rooms in Labs first");
-
-        joinButtons = (
-            <AccessibleButton kind="primary" onClick={viewLabs}>
-                {_t("Show Labs settings")}
-            </AccessibleButton>
-        );
     }
 
     return (

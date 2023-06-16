@@ -57,8 +57,8 @@ export default class WhoIsTypingTile extends React.Component<IProps, IState> {
     };
 
     public componentDidMount(): void {
-        MatrixClientPeg.get().on(RoomMemberEvent.Typing, this.onRoomMemberTyping);
-        MatrixClientPeg.get().on(RoomEvent.Timeline, this.onRoomTimeline);
+        MatrixClientPeg.safeGet().on(RoomMemberEvent.Typing, this.onRoomMemberTyping);
+        MatrixClientPeg.safeGet().on(RoomEvent.Timeline, this.onRoomTimeline);
     }
 
     public componentDidUpdate(prevProps: IProps, prevState: IState): void {
@@ -73,7 +73,7 @@ export default class WhoIsTypingTile extends React.Component<IProps, IState> {
 
     public componentWillUnmount(): void {
         // we may have entirely lost our client as we're logging out before clicking login on the guest bar...
-        const client = MatrixClientPeg.get();
+        const client = MatrixClientPeg.safeGet();
         if (client) {
             client.removeListener(RoomMemberEvent.Typing, this.onRoomMemberTyping);
             client.removeListener(RoomEvent.Timeline, this.onRoomTimeline);

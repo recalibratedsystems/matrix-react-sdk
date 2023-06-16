@@ -147,31 +147,6 @@ export default async function createRoom(client: MatrixClient, opts: IOpts): Pro
             ...createOpts.creation_content,
             [RoomCreateTypeField]: opts.roomType,
         };
-
-        // Video rooms require custom power levels
-        if (opts.roomType === RoomType.ElementVideo) {
-            createOpts.power_level_content_override = {
-                events: {
-                    ...DEFAULT_EVENT_POWER_LEVELS,
-                    // Make widgets immutable, even to admins
-                    "im.vector.modular.widgets": 200,
-                },
-                users: {
-                    // Temporarily give ourselves the power to set up a widget
-                    [client.getSafeUserId()]: 200,
-                },
-            };
-        } else if (opts.roomType === RoomType.UnstableCall) {
-            createOpts.power_level_content_override = {
-                events: {
-                    ...DEFAULT_EVENT_POWER_LEVELS,
-                },
-                users: {
-                    // Temporarily give ourselves the power to set up a call
-                    [client.getSafeUserId()]: 200,
-                },
-            };
-        }
     } else if (SettingsStore.getValue("feature_group_calls")) {
         createOpts.power_level_content_override = {
             events: {
@@ -320,18 +295,6 @@ export default async function createRoom(client: MatrixClient, opts: IOpts): Pro
                     [client.getDomain()!],
                     opts.suggested,
                 );
-            }
-        })
-        .then(async (): Promise<void> => {
-            if (opts.roomType === RoomType.ElementVideo) {
-
-                // Reset our power level back to admin so that the widget becomes immutable
-                const plEvent = (await room).currentState.getStateEvents(EventType.RoomPowerLevels, "");
-                await client.setPowerLevel(roomId, client.getUserId()!, 100, plEvent);
-            } else if (opts.roomType === RoomType.UnstableCall) {
-                // Reset our power level back to admin so that the call becomes immutable
-                const plEvent = (await room).currentState.getStateEvents(EventType.RoomPowerLevels, "");
-                await client.setPowerLevel(roomId, client.getUserId()!, 100, plEvent);
             }
         })
         .then(

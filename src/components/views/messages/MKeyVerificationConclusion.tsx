@@ -42,7 +42,7 @@ export default class MKeyVerificationConclusion extends React.Component<IProps> 
         if (request) {
             request.on(VerificationRequestEvent.Change, this.onRequestChanged);
         }
-        MatrixClientPeg.get().on(CryptoEvent.UserTrustStatusChanged, this.onTrustChanged);
+        MatrixClientPeg.safeGet().on(CryptoEvent.UserTrustStatusChanged, this.onTrustChanged);
     }
 
     public componentWillUnmount(): void {
@@ -50,7 +50,7 @@ export default class MKeyVerificationConclusion extends React.Component<IProps> 
         if (request) {
             request.off(VerificationRequestEvent.Change, this.onRequestChanged);
         }
-        const cli = MatrixClientPeg.get();
+        const cli = MatrixClientPeg.safeGet();
         if (cli) {
             cli.removeListener(CryptoEvent.UserTrustStatusChanged, this.onTrustChanged);
         }
@@ -89,7 +89,7 @@ export default class MKeyVerificationConclusion extends React.Component<IProps> 
         }
 
         // User isn't actually verified
-        if (!MatrixClientPeg.get().checkUserTrust(request.otherUserId).isCrossSigningVerified()) {
+        if (!MatrixClientPeg.safeGet().checkUserTrust(request.otherUserId).isCrossSigningVerified()) {
             return false;
         }
 
@@ -104,7 +104,7 @@ export default class MKeyVerificationConclusion extends React.Component<IProps> 
             return null;
         }
 
-        const client = MatrixClientPeg.get();
+        const client = MatrixClientPeg.safeGet();
         const myUserId = client.getUserId();
 
         let title: string | undefined;

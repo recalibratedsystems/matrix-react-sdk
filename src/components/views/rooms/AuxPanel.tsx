@@ -64,7 +64,7 @@ export default class AuxPanel extends React.Component<IProps, IState> {
     }
 
     public componentDidMount(): void {
-        const cli = MatrixClientPeg.get();
+        const cli = MatrixClientPeg.safeGet();
         if (SettingsStore.getValue("feature_state_counters")) {
             cli.on(RoomStateEvent.Events, this.onRoomStateEvents);
         }
@@ -72,7 +72,7 @@ export default class AuxPanel extends React.Component<IProps, IState> {
 
     public componentWillUnmount(): void {
         if (SettingsStore.getValue("feature_state_counters")) {
-            MatrixClientPeg.get()?.removeListener(RoomStateEvent.Events, this.onRoomStateEvents);
+            MatrixClientPeg.safeGet()?.removeListener(RoomStateEvent.Events, this.onRoomStateEvents);
         }
     }
 

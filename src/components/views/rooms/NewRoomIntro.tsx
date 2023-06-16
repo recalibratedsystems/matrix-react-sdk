@@ -279,7 +279,7 @@ const NewRoomIntro: React.FC = () => {
     );
 
     let subButton;
-    if (room.currentState.mayClientSendStateEvent(EventType.RoomEncryption, MatrixClientPeg.get()) && !isLocalRoom) {
+    if (room.currentState.mayClientSendStateEvent(EventType.RoomEncryption, MatrixClientPeg.safeGet()) && !isLocalRoom) {
         subButton = (
             <AccessibleButton kind="link_inline" onClick={openRoomSettings}>
                 {_t("Enable encryption in settings.")}

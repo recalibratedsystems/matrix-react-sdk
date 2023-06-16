@@ -21,7 +21,6 @@ import { _t } from "../../../../../languageHandler";
 import SettingsStore from "../../../../../settings/SettingsStore";
 import { SettingLevel } from "../../../../../settings/SettingLevel";
 import SdkConfig from "../../../../../SdkConfig";
-import BetaCard from "../../../beta/BetaCard";
 import SettingsFlag from "../../../elements/SettingsFlag";
 import { LabGroup, labGroupNames } from "../../../../../settings/Settings";
 import { EnhancedMap } from "../../../../../utils/maps";
@@ -31,13 +30,12 @@ import SettingsTab from "../SettingsTab";
 
 export default class LabsUserSettingsTab extends React.Component<{}> {
     private readonly labs: string[];
-    private readonly betas: string[];
 
     public constructor(props: {}) {
         super(props);
 
         const features = SettingsStore.getFeatureSettingNames();
-        const [labs, betas] = features.reduce(
+        const [labs, _] = features.reduce(
             (arr, f) => {
                 arr[SettingsStore.getBetaInfo(f) ? 1 : 0].push(f);
                 return arr;
@@ -46,7 +44,6 @@ export default class LabsUserSettingsTab extends React.Component<{}> {
         );
 
         this.labs = labs;
-        this.betas = betas;
 
         if (!SdkConfig.get("show_labs_settings")) {
             this.labs = [];
@@ -54,17 +51,6 @@ export default class LabsUserSettingsTab extends React.Component<{}> {
     }
 
     public render(): React.ReactNode {
-        let betaSection: JSX.Element | undefined;
-        if (this.betas.length) {
-            betaSection = (
-                <>
-                    {this.betas.map((f) => (
-                        <BetaCard key={f} featureId={f} />
-                    ))}
-                </>
-            );
-        }
-
         let labsSections: JSX.Element | undefined;
         if (this.labs.length) {
             const groups = new EnhancedMap<LabGroup, JSX.Element[]>();
@@ -110,18 +96,6 @@ export default class LabsUserSettingsTab extends React.Component<{}> {
 
         return (
             <SettingsTab>
-                <SettingsSection heading={_t("Upcoming features")}>
-                    <SettingsSubsectionText>
-                        {_t(
-                            "What's next for %(brand)s? " +
-                                "Labs are the best way to get things early, " +
-                                "test out new features and help shape them before they actually launch.",
-                            { brand: SdkConfig.get("brand") },
-                        )}
-                    </SettingsSubsectionText>
-                    {betaSection}
-                </SettingsSection>
-
                 {labsSections && (
                     <SettingsSection heading={_t("Early previews")}>
                         <SettingsSubsectionText>

@@ -16,15 +16,12 @@ limitations under the License.
 
 import { mocked, MockedObject } from "jest-mock";
 import { last } from "lodash";
-import { MatrixEvent } from "matrix-js-sdk/src/matrix";
 import { MatrixClient, ClientEvent } from "matrix-js-sdk/src/client";
 import { ClientWidgetApi } from "matrix-widget-api";
 
 import { stubClient, mkRoom, mkEvent } from "../../test-utils";
 import { MatrixClientPeg } from "../../../src/MatrixClientPeg";
 import { StopGapWidget } from "../../../src/stores/widgets/StopGapWidget";
-import { ElementWidgetActions } from "../../../src/stores/widgets/ElementWidgetActions";
-import { SdkContextClass } from "../../../src/contexts/SDKContext";
 
 jest.mock("matrix-widget-api/lib/ClientWidgetApi");
 

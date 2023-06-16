@@ -81,7 +81,6 @@ export enum LabGroup {
     Spaces,
     Widgets,
     Rooms,
-    VoiceAndVideo,
     Moderation,
     Analytics,
     Themes,
@@ -100,7 +99,6 @@ export const labGroupNames: Record<LabGroup, string> = {
     [LabGroup.Spaces]: _td("Spaces"),
     [LabGroup.Widgets]: _td("Widgets"),
     [LabGroup.Rooms]: _td("Rooms"),
-    [LabGroup.VoiceAndVideo]: _td("Voice & Video"),
     [LabGroup.Moderation]: _td("Moderation"),
     [LabGroup.Analytics]: _td("Analytics"),
     [LabGroup.Themes]: _td("Themes"),
@@ -177,39 +175,6 @@ export interface IFeature extends Omit<IBaseSetting<boolean>, "isFeature"> {
 export type ISetting = IBaseSetting | IFeature;
 
 export const SETTINGS: { [setting: string]: ISetting } = {
-    "feature_video_rooms": {
-        isFeature: true,
-        labsGroup: LabGroup.VoiceAndVideo,
-        displayName: _td("Video rooms"),
-        supportedLevels: LEVELS_FEATURE,
-        default: false,
-        // Reload to ensure that the left panel etc. get remounted
-        controller: new ReloadOnChangeController(),
-        betaInfo: {
-            title: _td("Video rooms"),
-            caption: () => (
-                <>
-                    <p>
-                        {_t("A new way to chat over voice and video in %(brand)s.", {
-                            brand: SdkConfig.get().brand,
-                        })}
-                    </p>
-                    <p>
-                        {_t("Video rooms are always-on VoIP channels embedded within a room in %(brand)s.", {
-                            brand: SdkConfig.get().brand,
-                        })}
-                    </p>
-                </>
-            ),
-            faq: () => false,
-            feedbackLabel: "video-room-feedback",
-            feedbackSubheading: _td(
-                "Thank you for trying the beta, please go into as much detail as you can so we can improve it.",
-            ),
-            image: require("../../res/img/betas/video_rooms.png"),
-            requiresRefresh: true,
-        },
-    },
     "feature_exploring_public_spaces": {
         isFeature: true,
         labsGroup: LabGroup.Spaces,
@@ -382,22 +347,6 @@ export const SETTINGS: { [setting: string]: ISetting } = {
         supportedLevels: LEVELS_DEVICE_ONLY_SETTINGS_WITH_CONFIG,
         default: "",
     },
-    "feature_element_call_video_rooms": {
-        isFeature: true,
-        supportedLevels: LEVELS_FEATURE,
-        labsGroup: LabGroup.VoiceAndVideo,
-        displayName: _td("Element Call video rooms"),
-        controller: new ReloadOnChangeController(),
-        default: false,
-    },
-    "feature_group_calls": {
-        isFeature: true,
-        supportedLevels: LEVELS_FEATURE,
-        labsGroup: LabGroup.VoiceAndVideo,
-        displayName: _td("New group call experience"),
-        controller: new ReloadOnChangeController(),
-        default: false,
-    },
     "feature_location_share_live": {
         isFeature: true,
         labsGroup: LabGroup.Messaging,
@@ -414,14 +363,6 @@ export const SETTINGS: { [setting: string]: ISetting } = {
         displayName: _td("Dynamic room predecessors"),
         description: _td("Enable MSC3946 (to support late-arriving room archives)"),
         shouldWarn: true,
-        default: false,
-    },
-    "feature_favourite_messages": {
-        isFeature: true,
-        labsGroup: LabGroup.Messaging,
-        supportedLevels: LEVELS_FEATURE,
-        displayName: _td("Favourite Messages"),
-        description: _td("Under active development."),
         default: false,
     },
     [Features.OidcNativeFlow]: {

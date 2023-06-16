@@ -166,14 +166,6 @@ describe("RoomHeader", () => {
         );
     };
 
-    it("hides call buttons in video rooms", () => {
-        mockRoomType(RoomType.UnstableCall);
-        mockEnabledSettings(["showCallButtonsInComposer", "feature_video_rooms", "feature_element_call_video_rooms"]);
-
-        renderHeader();
-        expect(screen.queryByRole("button", { name: /call/i })).toBeNull();
-    });
-
     it(
         "hides the voice call button and starts an Element call when the video call button is pressed if configured to " +
             "use Element Call exclusively",

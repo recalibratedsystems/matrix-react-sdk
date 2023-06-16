@@ -112,10 +112,6 @@ const RoomContextMenu: React.FC<IProps> = ({ room, onFinished, ...props }) => {
     }
 
     const isDm = DMRoomMap.shared().getUserIdForRoomId(room.roomId);
-    const videoRoomsEnabled = useFeatureEnabled("feature_video_rooms");
-    const elementCallVideoRoomsEnabled = useFeatureEnabled("feature_element_call_video_rooms");
-    const isVideoRoom =
-        videoRoomsEnabled && (room.isElementVideoRoom() || (elementCallVideoRoomsEnabled && room.isCallRoom()));
 
     let inviteOption: JSX.Element | undefined;
     if (room.canInvite(cli.getUserId()!) && !isDm && shouldShowComponent(UIComponent.InviteUsers)) {
@@ -253,28 +249,26 @@ const RoomContextMenu: React.FC<IProps> = ({ room, onFinished, ...props }) => {
     }
 
     let filesOption: JSX.Element | undefined;
-    if (!isVideoRoom) {
-        filesOption = (
-            <IconizedContextMenuOption
-                onClick={(ev: ButtonEvent) => {
-                    ev.preventDefault();
-                    ev.stopPropagation();
+    filesOption = (
+        <IconizedContextMenuOption
+            onClick={(ev: ButtonEvent) => {
+                ev.preventDefault();
+                ev.stopPropagation();
 
-                    ensureViewingRoom(ev);
-                    RightPanelStore.instance.pushCard({ phase: RightPanelPhases.FilePanel }, false);
-                    onFinished();
-                }}
-                label={_t("Files")}
-                iconClassName="mx_RoomTile_iconFiles"
-            />
-        );
-    }
+                ensureViewingRoom(ev);
+                RightPanelStore.instance.pushCard({ phase: RightPanelPhases.FilePanel }, false);
+                onFinished();
+            }}
+            label={_t("Files")}
+            iconClassName="mx_RoomTile_iconFiles"
+        />
+    );
 
     const pinningEnabled = useFeatureEnabled("feature_pinning");
     const pinCount = usePinnedEvents(pinningEnabled ? room : undefined)?.length;
 
     let pinsOption: JSX.Element | undefined;
-    if (pinningEnabled && !isVideoRoom) {
+    if (pinningEnabled) {
         pinsOption = (
             <IconizedContextMenuOption
                 onClick={(ev: ButtonEvent) => {
@@ -294,39 +288,35 @@ const RoomContextMenu: React.FC<IProps> = ({ room, onFinished, ...props }) => {
     }
 
     let widgetsOption: JSX.Element | undefined;
-    if (!isVideoRoom) {
-        widgetsOption = (
-            <IconizedContextMenuOption
-                onClick={(ev: ButtonEvent) => {
-                    ev.preventDefault();
-                    ev.stopPropagation();
+    widgetsOption = (
+        <IconizedContextMenuOption
+            onClick={(ev: ButtonEvent) => {
+                ev.preventDefault();
+                ev.stopPropagation();
 
-                    ensureViewingRoom(ev);
-                    RightPanelStore.instance.setCard({ phase: RightPanelPhases.RoomSummary }, false);
-                    onFinished();
-                }}
-                label={_t("Widgets")}
-                iconClassName="mx_RoomTile_iconWidgets"
-            />
-        );
-    }
+                ensureViewingRoom(ev);
+                RightPanelStore.instance.setCard({ phase: RightPanelPhases.RoomSummary }, false);
+                onFinished();
+            }}
+            label={_t("Widgets")}
+            iconClassName="mx_RoomTile_iconWidgets"
+        />
+    );
 
     let exportChatOption: JSX.Element | undefined;
-    if (!isVideoRoom) {
-        exportChatOption = (
-            <IconizedContextMenuOption
-                onClick={(ev: ButtonEvent) => {
-                    ev.preventDefault();
-                    ev.stopPropagation();
+    exportChatOption = (
+        <IconizedContextMenuOption
+            onClick={(ev: ButtonEvent) => {
+                ev.preventDefault();
+                ev.stopPropagation();
 
-                    Modal.createDialog(ExportDialog, { room });
-                    onFinished();
-                }}
-                label={_t("Export chat")}
-                iconClassName="mx_RoomTile_iconExport"
-            />
-        );
-    }
+                Modal.createDialog(ExportDialog, { room });
+                onFinished();
+            }}
+            label={_t("Export chat")}
+            iconClassName="mx_RoomTile_iconExport"
+        />
+    );
 
     const onTagRoom = (ev: ButtonEvent, tagId: TagID): void => {
         ev.preventDefault();

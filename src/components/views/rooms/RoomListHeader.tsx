@@ -124,8 +124,6 @@ const RoomListHeader: React.FC<IProps> = ({ onVisibilityChange }) => {
     const allRoomsInHome = useEventEmitterState(SpaceStore.instance, UPDATE_HOME_BEHAVIOUR, () => {
         return SpaceStore.instance.allRoomsInHome;
     });
-    const videoRoomsEnabled = useFeatureEnabled("feature_video_rooms");
-    const elementCallVideoRoomsEnabled = useFeatureEnabled("feature_element_call_video_rooms");
     const pendingActions = usePendingActions();
 
     const canShowMainMenu = activeSpace || spaceKey === MetaSpace.Home;
@@ -208,23 +206,6 @@ const RoomListHeader: React.FC<IProps> = ({ onVisibilityChange }) => {
                             closePlusMenu();
                         }}
                     />
-                    {videoRoomsEnabled && (
-                        <IconizedContextMenuOption
-                            iconClassName="mx_RoomListHeader_iconNewVideoRoom"
-                            label={_t("New video room")}
-                            onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                showCreateNewRoom(
-                                    activeSpace,
-                                    elementCallVideoRoomsEnabled ? RoomType.UnstableCall : RoomType.ElementVideo,
-                                );
-                                closePlusMenu();
-                            }}
-                        >
-                            <BetaPill />
-                        </IconizedContextMenuOption>
-                    )}
                 </>
             );
         }
@@ -319,23 +300,6 @@ const RoomListHeader: React.FC<IProps> = ({ onVisibilityChange }) => {
                             closePlusMenu();
                         }}
                     />
-                    {videoRoomsEnabled && (
-                        <IconizedContextMenuOption
-                            label={_t("New video room")}
-                            iconClassName="mx_RoomListHeader_iconNewVideoRoom"
-                            onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                defaultDispatcher.dispatch({
-                                    action: "view_create_room",
-                                    type: elementCallVideoRoomsEnabled ? RoomType.UnstableCall : RoomType.ElementVideo,
-                                });
-                                closePlusMenu();
-                            }}
-                        >
-                            <BetaPill />
-                        </IconizedContextMenuOption>
-                    )}
                 </>
             );
         }

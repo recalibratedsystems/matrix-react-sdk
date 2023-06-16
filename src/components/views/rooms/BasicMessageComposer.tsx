@@ -269,7 +269,7 @@ export default class BasicMessageEditor extends React.Component<IProps, IState> 
         if (isTyping && this.props.model.parts[0].type === "command") {
             const { cmd } = parseCommandString(this.props.model.parts[0].text);
             const command = CommandMap.get(cmd!);
-            if (!command?.isEnabled(MatrixClientPeg.get()) || command.category !== CommandCategories.messages) {
+            if (!command?.isEnabled(MatrixClientPeg.safeGet()) || command.category !== CommandCategories.messages) {
                 isTyping = false;
             }
         }

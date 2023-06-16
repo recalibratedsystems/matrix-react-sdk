@@ -46,7 +46,6 @@ import {
     WidgetLifecycle,
 } from "@matrix-org/react-sdk-module-api/lib/lifecycles/WidgetLifecycle";
 
-import SdkConfig, { DEFAULTS } from "../../SdkConfig";
 import { iterableDiff, iterableIntersection } from "../../utils/iterables";
 import { MatrixClientPeg } from "../../MatrixClientPeg";
 import Modal from "../../Modal";
@@ -214,7 +213,7 @@ export class StopGapWidgetDriver extends WidgetDriver {
         encrypted: boolean,
         contentMap: { [userId: string]: { [deviceId: string]: object } },
     ): Promise<void> {
-        const client = MatrixClientPeg.get();
+        const client = MatrixClientPeg.safeGet();
 
         if (encrypted) {
             const deviceInfoMap = await client.crypto!.deviceList.downloadKeys(Object.keys(contentMap), false);
@@ -330,7 +329,7 @@ export class StopGapWidgetDriver extends WidgetDriver {
         if (opts.approved) {
             return observer.update({
                 state: OpenIDRequestState.Allowed,
-                token: await MatrixClientPeg.get().getOpenIdToken(),
+                token: await MatrixClientPeg.safeGet().getOpenIdToken(),
             });
         }
 
@@ -341,7 +340,7 @@ export class StopGapWidgetDriver extends WidgetDriver {
         );
 
         const getToken = (): Promise<IOpenIDCredentials> => {
-            return MatrixClientPeg.get().getOpenIdToken();
+            return MatrixClientPeg.safeGet().getOpenIdToken();
         };
 
         if (oidcState === OIDCState.Denied) {
@@ -373,7 +372,7 @@ export class StopGapWidgetDriver extends WidgetDriver {
     }
 
     public async *getTurnServers(): AsyncGenerator<ITurnServer> {
-        const client = MatrixClientPeg.get();
+        const client = MatrixClientPeg.safeGet();
         if (!client.pollingTurnServers || !client.getTurnServers().length) return;
 
         let setTurnServer: (server: ITurnServer) => void;
@@ -416,7 +415,7 @@ export class StopGapWidgetDriver extends WidgetDriver {
         limit?: number,
         direction?: "f" | "b",
     ): Promise<IReadEventRelationsResult> {
-        const client = MatrixClientPeg.get();
+        const client = MatrixClientPeg.safeGet();
         const dir = direction as Direction;
         roomId = roomId ?? SdkContextClass.instance.roomViewStore.getRoomId() ?? undefined;
 
@@ -440,7 +439,7 @@ export class StopGapWidgetDriver extends WidgetDriver {
     }
 
     public async searchUserDirectory(searchTerm: string, limit?: number): Promise<ISearchUserDirectoryResult> {
-        const client = MatrixClientPeg.get();
+        const client = MatrixClientPeg.safeGet();
 
         const { limited, results } = await client.searchUserDirectory({ term: searchTerm, limit });
 

@@ -190,7 +190,7 @@ export class MessageComposer extends React.Component<IProps, IState> {
 
     private waitForOwnMember(): void {
         // If we have the member already, do that
-        const me = this.props.room.getMember(MatrixClientPeg.get().getUserId()!);
+        const me = this.props.room.getMember(MatrixClientPeg.safeGet().getUserId()!);
         if (me) {
             this.setState({ me });
             return;
@@ -199,7 +199,7 @@ export class MessageComposer extends React.Component<IProps, IState> {
         // The members should already be loading, and loadMembersIfNeeded
         // will return the promise for the existing operation
         this.props.room.loadMembersIfNeeded().then(() => {
-            const me = this.props.room.getMember(MatrixClientPeg.get().getSafeUserId()) ?? undefined;
+            const me = this.props.room.getMember(MatrixClientPeg.safeGet().getSafeUserId()) ?? undefined;
             this.setState({ me });
         });
     }
@@ -214,7 +214,7 @@ export class MessageComposer extends React.Component<IProps, IState> {
         ev.preventDefault();
 
         const replacementRoomId = this.context.tombstone?.getContent()["replacement_room"];
-        const replacementRoom = MatrixClientPeg.get().getRoom(replacementRoomId);
+        const replacementRoom = MatrixClientPeg.safeGet().getRoom(replacementRoomId);
         let createEventId: string | undefined;
         if (replacementRoom) {
             const createEvent = replacementRoom.currentState.getStateEvents(EventType.RoomCreate, "");
@@ -403,7 +403,7 @@ export class MessageComposer extends React.Component<IProps, IState> {
 
             const continuesLink = replacementRoomId ? (
                 <a
-                    href={makeRoomPermalink(MatrixClientPeg.get(), replacementRoomId)}
+                    href={makeRoomPermalink(MatrixClientPeg.safeGet(), replacementRoomId)}
                     className="mx_MessageComposer_roomReplaced_link"
                     onClick={this.onTombstoneClick}
                 >

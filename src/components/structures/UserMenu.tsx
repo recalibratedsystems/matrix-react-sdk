@@ -233,7 +233,7 @@ export default class UserMenu extends React.Component<IProps, IState> {
         ev.preventDefault();
         ev.stopPropagation();
 
-        const cli = MatrixClientPeg.get();
+        const cli = MatrixClientPeg.safeGet();
         if (!cli || !cli.isCryptoEnabled() || !(await cli.exportRoomKeys())?.length) {
             // log out without user prompt if they have no local megolm sessions
             defaultDispatcher.dispatch({ action: "logout" });
@@ -266,7 +266,7 @@ export default class UserMenu extends React.Component<IProps, IState> {
         if (!this.state.contextMenuPosition) return null;
 
         let topSection: JSX.Element | undefined;
-        if (MatrixClientPeg.get().isGuest()) {
+        if (MatrixClientPeg.safeGet().isGuest()) {
             topSection = (
                 <div className="mx_UserMenu_contextMenu_header mx_UserMenu_contextMenu_guestPrompts">
                     {_t(
@@ -335,7 +335,7 @@ export default class UserMenu extends React.Component<IProps, IState> {
             </IconizedContextMenuOptionList>
         );
 
-        if (MatrixClientPeg.get().isGuest()) {
+        if (MatrixClientPeg.safeGet().isGuest()) {
             primaryOptionList = (
                 <IconizedContextMenuOptionList>
                     {homeButton}
@@ -361,7 +361,7 @@ export default class UserMenu extends React.Component<IProps, IState> {
                         </span>
                         <span className="mx_UserMenu_contextMenu_userId">
                             {UserIdentifierCustomisations.getDisplayUserIdentifier(
-                                MatrixClientPeg.get().getSafeUserId(),
+                                MatrixClientPeg.safeGet().getSafeUserId(),
                                 {
                                     withDisplayName: true,
                                 },
@@ -390,7 +390,7 @@ export default class UserMenu extends React.Component<IProps, IState> {
     public render(): React.ReactNode {
         const avatarSize = 32; // should match border-radius of the avatar
 
-        const userId = MatrixClientPeg.get().getSafeUserId();
+        const userId = MatrixClientPeg.safeGet().getSafeUserId();
         const displayName = OwnProfileStore.instance.displayName || userId;
         const avatarUrl = OwnProfileStore.instance.getHttpAvatarUrl(avatarSize);
 

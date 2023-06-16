@@ -251,7 +251,7 @@ export class RoomViewStore extends EventEmitter {
                     this.setState({ shouldPeek: false });
                 }
 
-                awaitRoomDownSync(MatrixClientPeg.get(), payload.roomId).then((room) => {
+                awaitRoomDownSync(MatrixClientPeg.safeGet(), payload.roomId).then((room) => {
                     const numMembers = room.getJoinedMemberCount();
                     const roomSize =
                         numMembers > 1000
@@ -306,7 +306,7 @@ export class RoomViewStore extends EventEmitter {
 
     private async viewRoom(payload: ViewRoomPayload): Promise<void> {
         if (payload.room_id) {
-            const room = MatrixClientPeg.get().getRoom(payload.room_id);
+            const room = MatrixClientPeg.safeGet().getRoom(payload.room_id);
 
             if (payload.metricsTrigger !== null && payload.room_id !== this.state.roomId) {
                 let activeSpace: ViewRoomEvent["activeSpace"];
@@ -421,7 +421,7 @@ export class RoomViewStore extends EventEmitter {
                     wasContextSwitch: payload.context_switch,
                 });
                 try {
-                    const result = await MatrixClientPeg.get().getRoomIdForAlias(payload.room_alias);
+                    const result = await MatrixClientPeg.safeGet().getRoomIdForAlias(payload.room_alias);
                     storeRoomAliasInCache(payload.room_alias, result.room_id);
                     roomId = result.room_id;
                 } catch (err) {
@@ -464,7 +464,7 @@ export class RoomViewStore extends EventEmitter {
             joining: true,
         });
 
-        const cli = MatrixClientPeg.get();
+        const cli = MatrixClientPeg.safeGet();
         // take a copy of roomAlias & roomId as they may change by the time the join is complete
         const { roomAlias, roomId = payload.roomId } = this.state;
         const address = roomAlias || roomId!;
@@ -501,7 +501,7 @@ export class RoomViewStore extends EventEmitter {
     }
 
     private getInvitingUserId(roomId: string): string | undefined {
-        const cli = MatrixClientPeg.get();
+        const cli = MatrixClientPeg.safeGet();
         const room = cli.getRoom(roomId);
         if (room?.getMyMembership() === "invite") {
             const myMember = room.getMember(cli.getSafeUserId());
@@ -529,7 +529,7 @@ export class RoomViewStore extends EventEmitter {
             // provide a better error message for invites
             if (invitingUserId) {
                 // if the inviting user is on the same HS, there can only be one cause: they left.
-                if (invitingUserId.endsWith(`:${MatrixClientPeg.get().getDomain()}`)) {
+                if (invitingUserId.endsWith(`:${MatrixClientPeg.safeGet().getDomain()}`)) {
                     description = _t("The person who invited you has already left.");
                 } else {
                     description = _t("The person who invited you has already left, or their server is offline.");

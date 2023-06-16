@@ -46,15 +46,9 @@ const RoomInfoLine: FC<IProps> = ({ room }) => {
     const membership = useMyRoomMembership(room);
     const memberCount = useRoomMemberCount(room);
 
-    const elementCallVideoRoomsEnabled = useFeatureEnabled("feature_element_call_video_rooms");
-    const isVideoRoom = room.isElementVideoRoom() || (elementCallVideoRoomsEnabled && room.isCallRoom());
-
     let iconClass: string;
     let roomType: string;
-    if (isVideoRoom) {
-        iconClass = "mx_RoomInfoLine_video";
-        roomType = _t("Video room");
-    } else if (joinRule === JoinRule.Public) {
+    if (joinRule === JoinRule.Public) {
         iconClass = "mx_RoomInfoLine_public";
         roomType = room.isSpaceRoom() ? _t("Public space") : _t("Public room");
     } else {

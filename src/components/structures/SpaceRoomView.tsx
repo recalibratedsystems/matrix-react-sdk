@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { EventType, RoomType } from "matrix-js-sdk/src/@types/event";
+import { EventType } from "matrix-js-sdk/src/@types/event";
 import { JoinRule, Preset } from "matrix-js-sdk/src/@types/partials";
 import { logger } from "matrix-js-sdk/src/logger";
 import { Room, RoomEvent } from "matrix-js-sdk/src/models/room";
@@ -108,7 +108,6 @@ const SpaceLandingAddButton: React.FC<{ space: Room }> = ({ space }) => {
     const [menuDisplayed, handle, openMenu, closeMenu] = useContextMenu();
     const canCreateRoom = shouldShowComponent(UIComponent.CreateRooms);
     const canCreateSpace = shouldShowComponent(UIComponent.CreateSpaces);
-    const videoRoomsEnabled = useFeatureEnabled("feature_video_rooms");
     const elementCallVideoRoomsEnabled = useFeatureEnabled("feature_element_call_video_rooms");
 
     let contextMenu: JSX.Element | null = null;
@@ -140,30 +139,6 @@ const SpaceLandingAddButton: React.FC<{ space: Room }> = ({ space }) => {
                                     }
                                 }}
                             />
-                            {videoRoomsEnabled && (
-                                <IconizedContextMenuOption
-                                    label={_t("New video room")}
-                                    iconClassName="mx_RoomList_iconNewVideoRoom"
-                                    onClick={async (e): Promise<void> => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        closeMenu();
-
-                                        if (
-                                            await showCreateNewRoom(
-                                                space,
-                                                elementCallVideoRoomsEnabled
-                                                    ? RoomType.UnstableCall
-                                                    : RoomType.ElementVideo,
-                                            )
-                                        ) {
-                                            defaultDispatcher.fire(Action.UpdateSpaceHierarchy);
-                                        }
-                                    }}
-                                >
-                                    <BetaPill />
-                                </IconizedContextMenuOption>
-                            )}
                         </>
                     )}
                     <IconizedContextMenuOption

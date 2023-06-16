@@ -288,27 +288,6 @@ describe("RoomView", () => {
         });
     });
 
-    describe("video rooms", () => {
-        beforeEach(async () => {
-            // Make it a video room
-            room.isElementVideoRoom = () => true;
-            await SettingsStore.setValue("feature_video_rooms", null, SettingLevel.DEVICE, true);
-        });
-
-        it("normally doesn't open the chat panel", async () => {
-            jest.spyOn(NotificationState.prototype, "isUnread", "get").mockReturnValue(false);
-            await mountRoomView();
-            expect(stores.rightPanelStore.isOpen).toEqual(false);
-        });
-
-        it("opens the chat panel if there are unread messages", async () => {
-            jest.spyOn(NotificationState.prototype, "isUnread", "get").mockReturnValue(true);
-            await mountRoomView();
-            expect(stores.rightPanelStore.isOpen).toEqual(true);
-            expect(stores.rightPanelStore.currentCard.phase).toEqual(RightPanelPhases.Timeline);
-        });
-    });
-
     describe("for a local room", () => {
         let localRoom: LocalRoom;
 

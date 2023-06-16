@@ -133,66 +133,6 @@ describe("Room Header", () => {
         cy.get(".mx_RoomHeader").percySnapshotElement("Room header - with a highlighted button");
     });
 
-    describe("with a video room", () => {
-        const createVideoRoom = () => {
-            // Enable video rooms. This command reloads the app
-            cy.setSettingValue("feature_video_rooms", null, SettingLevel.DEVICE, true);
-
-            cy.get(".mx_LeftPanel_roomListContainer", { timeout: 20000 })
-                .findByRole("button", { name: "Add room" })
-                .click();
-
-            cy.findByRole("menuitem", { name: "New video room" }).click();
-
-            cy.findByRole("textbox", { name: "Name" }).type("Test video room");
-
-            cy.findByRole("button", { name: "Create video room" }).click();
-
-            cy.viewRoomByName("Test video room");
-        };
-
-        it("should render buttons for room options, beta pill, invite, chat, and room info", () => {
-            createVideoRoom();
-
-            cy.get(".mx_RoomHeader").within(() => {
-                // Names (aria-label) of the buttons on the video room header
-                const expectedButtonNames = [
-                    "Room options",
-                    "Video rooms are a beta feature Click for more info", // Beta pill
-                    "Invite",
-                    "Chat",
-                    "Room info",
-                ];
-
-                // Assert they are found and visible
-                for (const name of expectedButtonNames) {
-                    cy.findByRole("button", { name }).should("be.visible");
-                }
-
-                // Assert that there is not a button except those buttons
-                cy.findAllByRole("button").should("have.length", 5);
-            });
-
-            cy.get(".mx_RoomHeader").percySnapshotElement("Room header - with a video room");
-        });
-
-        it("should render a working chat button which opens the timeline on a right panel", () => {
-            createVideoRoom();
-
-            cy.get(".mx_RoomHeader").findByRole("button", { name: "Chat" }).click();
-
-            // Assert that the video is rendered
-            cy.get(".mx_CallView video").should("exist");
-
-            cy.get(".mx_RightPanel .mx_TimelineCard")
-                .should("exist")
-                .within(() => {
-                    // Assert that GELS is visible
-                    cy.findByText("Sakura created and configured the room.").should("exist");
-                });
-        });
-    });
-
     describe("with a widget", () => {
         const ROOM_NAME = "Test Room with a widget";
         const WIDGET_ID = "fake-widget";

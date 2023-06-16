@@ -298,10 +298,6 @@ const RoomSummaryCard: React.FC<IProps> = ({ room, permalinkCreator, onClose }) 
     const isRoomEncrypted = useIsEncrypted(cli, room);
     const roomContext = useContext(RoomContext);
     const e2eStatus = roomContext.e2eStatus;
-    const videoRoomsEnabled = useFeatureEnabled("feature_video_rooms");
-    const elementCallVideoRoomsEnabled = useFeatureEnabled("feature_element_call_video_rooms");
-    const isVideoRoom =
-        videoRoomsEnabled && (room.isElementVideoRoom() || (elementCallVideoRoomsEnabled && room.isCallRoom()));
 
     const alias = room.getCanonicalAlias() || room.getAltAliases()[0] || "";
     const header = (
@@ -342,27 +338,21 @@ const RoomSummaryCard: React.FC<IProps> = ({ room, permalinkCreator, onClose }) 
                     {_t("People")}
                     <span className="mx_BaseCard_Button_sublabel">{memberCount}</span>
                 </Button>
-                {!isVideoRoom && (
-                    <Button className="mx_RoomSummaryCard_icon_files" onClick={onRoomFilesClick}>
-                        {_t("Files")}
-                    </Button>
-                )}
-                {!isVideoRoom && (
-                    <Button className="mx_RoomSummaryCard_icon_poll" onClick={onRoomPollHistoryClick}>
-                        {_t("Poll history")}
-                    </Button>
-                )}
-                {pinningEnabled && !isVideoRoom && (
+                <Button className="mx_RoomSummaryCard_icon_files" onClick={onRoomFilesClick}>
+                    {_t("Files")}
+                </Button>
+                <Button className="mx_RoomSummaryCard_icon_poll" onClick={onRoomPollHistoryClick}>
+                    {_t("Poll history")}
+                </Button>
+                {pinningEnabled && (
                     <Button className="mx_RoomSummaryCard_icon_pins" onClick={onRoomPinsClick}>
                         {_t("Pinned")}
                         {pinCount > 0 && <span className="mx_BaseCard_Button_sublabel">{pinCount}</span>}
                     </Button>
                 )}
-                {!isVideoRoom && (
-                    <Button className="mx_RoomSummaryCard_icon_export" onClick={onRoomExportClick}>
-                        {_t("Export chat")}
-                    </Button>
-                )}
+                <Button className="mx_RoomSummaryCard_icon_export" onClick={onRoomExportClick}>
+                    {_t("Export chat")}
+                </Button>
                 <Button
                     data-testid="shareRoomButton"
                     className="mx_RoomSummaryCard_icon_share"
@@ -376,7 +366,6 @@ const RoomSummaryCard: React.FC<IProps> = ({ room, permalinkCreator, onClose }) 
             </Group>
 
             {SettingsStore.getValue(UIFeature.Widgets) &&
-                !isVideoRoom &&
                 shouldShowComponent(UIComponent.AddIntegrations) && <AppsSection room={room} />}
         </BaseCard>
     );

@@ -135,12 +135,10 @@ const SpaceContextMenu: React.FC<IProps> = ({ space, hideHeader, onFinished, ...
         );
     }
 
-    const videoRoomsEnabled = useFeatureEnabled("feature_video_rooms");
     const elementCallVideoRoomsEnabled = useFeatureEnabled("feature_element_call_video_rooms");
 
     const hasPermissionToAddSpaceChild = space.currentState.maySendStateEvent(EventType.SpaceChild, userId);
     const canAddRooms = hasPermissionToAddSpaceChild && shouldShowComponent(UIComponent.CreateRooms);
-    const canAddVideoRooms = canAddRooms && videoRoomsEnabled;
     const canAddSubSpaces = hasPermissionToAddSpaceChild && shouldShowComponent(UIComponent.CreateSpaces);
 
     let newRoomSection: JSX.Element | null = null;
@@ -182,16 +180,6 @@ const SpaceContextMenu: React.FC<IProps> = ({ space, hideHeader, onFinished, ...
                         label={_t("Room")}
                         onClick={onNewRoomClick}
                     />
-                )}
-                {canAddVideoRooms && (
-                    <IconizedContextMenuOption
-                        data-testid="new-video-room-option"
-                        iconClassName="mx_SpacePanel_iconPlus"
-                        label={_t("Video room")}
-                        onClick={onNewVideoRoomClick}
-                    >
-                        <BetaPill />
-                    </IconizedContextMenuOption>
                 )}
                 {canAddSubSpaces && (
                     <IconizedContextMenuOption

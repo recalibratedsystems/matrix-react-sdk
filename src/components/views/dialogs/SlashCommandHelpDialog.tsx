@@ -28,7 +28,7 @@ interface IProps {
 const SlashCommandHelpDialog: React.FC<IProps> = ({ onFinished }) => {
     const categories: Record<string, Command[]> = {};
     Commands.forEach((cmd) => {
-        if (!cmd.isEnabled(MatrixClientPeg.get())) return;
+        if (!cmd.isEnabled(MatrixClientPeg.safeGet())) return;
         if (!categories[cmd.category]) {
             categories[cmd.category] = [];
         }

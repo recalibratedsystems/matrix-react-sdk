@@ -47,7 +47,7 @@ export default class ProfileSettings extends React.Component<{}, IState> {
     public constructor(props: {}) {
         super(props);
 
-        this.userId = MatrixClientPeg.get().getSafeUserId();
+        this.userId = MatrixClientPeg.safeGet().getSafeUserId();
         let avatarUrl = OwnProfileStore.instance.avatarMxc;
         if (avatarUrl) avatarUrl = mediaFromMxc(avatarUrl).getSquareThumbnailHttp(96);
         this.state = {
@@ -96,7 +96,7 @@ export default class ProfileSettings extends React.Component<{}, IState> {
         if (!this.state.enableProfileSave) return;
         this.setState({ enableProfileSave: false });
 
-        const client = MatrixClientPeg.get();
+        const client = MatrixClientPeg.safeGet();
         const newState: Partial<IState> = {};
 
         const displayName = this.state.displayName.trim();

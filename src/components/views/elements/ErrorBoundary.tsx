@@ -60,8 +60,8 @@ export default class ErrorBoundary extends React.PureComponent<Props, IState> {
     private onClearCacheAndReload = (): void => {
         if (!PlatformPeg.get()) return;
 
-        MatrixClientPeg.get().stopClient();
-        MatrixClientPeg.get()
+        MatrixClientPeg.safeGet().stopClient();
+        MatrixClientPeg.safeGet()
             .store.deleteAllData()
             .then(() => {
                 PlatformPeg.get()?.reload();
@@ -81,7 +81,7 @@ export default class ErrorBoundary extends React.PureComponent<Props, IState> {
 
             let clearCacheButton: JSX.Element | undefined;
             // we only show this button if there is an initialised MatrixClient otherwise we can't clear the cache
-            if (MatrixClientPeg.get()) {
+            if (MatrixClientPeg.safeGet()) {
                 clearCacheButton = (
                     <AccessibleButton onClick={this.onClearCacheAndReload} kind="danger">
                         {_t("Clear cache and reload")}

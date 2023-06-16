@@ -43,7 +43,7 @@ export default abstract class ScrollableBaseModal<
     }
 
     protected get matrixClient(): MatrixClient {
-        return MatrixClientPeg.get();
+        return MatrixClientPeg.safeGet();
     }
 
     private onKeyDown = (e: KeyboardEvent | React.KeyboardEvent): void => {
