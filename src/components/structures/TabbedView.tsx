@@ -22,7 +22,6 @@ import { logger } from "matrix-js-sdk/src/logger";
 
 import { _t } from "../../languageHandler";
 import AutoHideScrollbar from "./AutoHideScrollbar";
-import { PosthogScreenTracker, ScreenName } from "../../PosthogTrackers";
 import { NonEmptyArray } from "../../@types/common";
 import { RovingAccessibleButton, RovingTabIndexProvider } from "../../accessibility/RovingTabIndex";
 
@@ -43,7 +42,6 @@ export class Tab<T extends string> {
         public readonly label: string,
         public readonly icon: string | null,
         public readonly body: React.ReactNode,
-        public readonly screenName?: ScreenName,
     ) {}
 }
 
@@ -57,7 +55,6 @@ interface IProps<T extends string> {
     initialTabId?: T;
     tabLocation: TabLocation;
     onChange?: (tabId: T) => void;
-    screenName?: ScreenName;
 }
 
 interface IState<T extends string> {
@@ -155,11 +152,8 @@ export default class TabbedView<T extends string> extends React.Component<IProps
             mx_TabbedView_tabsOnTop: this.props.tabLocation == TabLocation.TOP,
         });
 
-        const screenName = tab?.screenName ?? this.props.screenName;
-
         return (
             <div className={tabbedViewClasses}>
-                {screenName && <PosthogScreenTracker screenName={screenName} />}
                 <RovingTabIndexProvider
                     handleLoop
                     handleHomeEnd

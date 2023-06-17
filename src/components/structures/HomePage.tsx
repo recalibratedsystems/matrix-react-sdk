@@ -30,21 +30,17 @@ import { UPDATE_EVENT } from "../../stores/AsyncStore";
 import { useEventEmitter } from "../../hooks/useEventEmitter";
 import MatrixClientContext, { useMatrixClientContext } from "../../contexts/MatrixClientContext";
 import MiniAvatarUploader, { AVATAR_SIZE } from "../views/elements/MiniAvatarUploader";
-import PosthogTrackers from "../../PosthogTrackers";
 import EmbeddedPage from "./EmbeddedPage";
 
 const onClickSendDm = (ev: ButtonEvent): void => {
-    PosthogTrackers.trackInteraction("WebHomeCreateChatButton", ev);
     dis.dispatch({ action: "view_create_chat" });
 };
 
 const onClickExplore = (ev: ButtonEvent): void => {
-    PosthogTrackers.trackInteraction("WebHomeExploreRoomsButton", ev);
     dis.fire(Action.ViewRoomDirectory);
 };
 
 const onClickNewRoom = (ev: ButtonEvent): void => {
-    PosthogTrackers.trackInteraction("WebHomeCreateRoomButton", ev);
     dis.dispatch({ action: "view_create_room" });
 };
 
@@ -78,7 +74,6 @@ const UserWelcomeTop: React.FC = () => {
                 noAvatarLabel={_tDom("Add a photo so people know it's you.")}
                 setAvatarUrl={(url) => cli.setAvatarUrl(url)}
                 isUserAvatar
-                onClick={(ev) => PosthogTrackers.trackInteraction("WebHomeMiniAvatarUploadButton", ev)}
             >
                 <BaseAvatar
                     idName={userId}

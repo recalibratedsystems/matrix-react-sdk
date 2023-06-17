@@ -20,7 +20,6 @@ import classNames from "classnames";
 
 import AccessibleButton from "../elements/AccessibleButton";
 import { _t } from "../../../languageHandler";
-import { PosthogScreenTracker } from "../../../PosthogTrackers";
 import { getKeyBindingsManager } from "../../../KeyBindingsManager";
 import { KeyBindingAction } from "../../../accessibility/KeyboardShortcuts";
 import SearchWarning, { WarningKind } from "../elements/SearchWarning";
@@ -95,7 +94,6 @@ export default class SearchBar extends React.Component<IProps, IState> {
 
         return (
             <>
-                <PosthogScreenTracker screenName="RoomSearch" />
                 <div className="mx_SearchBar">
                     <div className="mx_SearchBar_buttons" role="radiogroup">
                         <AccessibleButton

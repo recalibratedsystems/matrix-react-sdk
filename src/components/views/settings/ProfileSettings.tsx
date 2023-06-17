@@ -28,7 +28,6 @@ import AccessibleButton, { ButtonEvent } from "../elements/AccessibleButton";
 import AvatarSetting from "./AvatarSetting";
 import UserIdentifierCustomisations from "../../../customisations/UserIdentifier";
 import { chromeFileInputFix } from "../../../utils/BrowserWorkarounds";
-import PosthogTrackers from "../../../PosthogTrackers";
 import { SettingsSubsectionHeading } from "./shared/SettingsSubsectionHeading";
 
 interface IState {
@@ -177,7 +176,6 @@ export default class ProfileSettings extends React.Component<{}, IState> {
                     className="mx_ProfileSettings_avatarUpload"
                     onClick={(ev) => {
                         chromeFileInputFix(ev);
-                        PosthogTrackers.trackInteraction("WebProfileSettingsAvatarUploadButton", ev);
                     }}
                     onChange={this.onAvatarChanged}
                     accept="image/*"

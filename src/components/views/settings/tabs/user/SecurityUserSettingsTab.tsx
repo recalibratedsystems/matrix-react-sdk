@@ -23,19 +23,15 @@ import { _t } from "../../../../../languageHandler";
 import { MatrixClientPeg } from "../../../../../MatrixClientPeg";
 import AccessibleButton from "../../../elements/AccessibleButton";
 import dis from "../../../../../dispatcher/dispatcher";
-import { SettingLevel } from "../../../../../settings/SettingLevel";
 import SecureBackupPanel from "../../SecureBackupPanel";
 import SettingsStore from "../../../../../settings/SettingsStore";
 import { UIFeature } from "../../../../../settings/UIFeature";
 import E2eAdvancedPanel, { isE2eAdvancedPanelPossible } from "../../E2eAdvancedPanel";
 import { ActionPayload } from "../../../../../dispatcher/payloads";
 import CryptographyPanel from "../../CryptographyPanel";
-import SettingsFlag from "../../../elements/SettingsFlag";
 import CrossSigningPanel from "../../CrossSigningPanel";
 import EventIndexPanel from "../../EventIndexPanel";
 import InlineSpinner from "../../../elements/InlineSpinner";
-import { PosthogAnalytics } from "../../../../../PosthogAnalytics";
-import { showDialog as showAnalyticsLearnMoreDialog } from "../../../dialogs/AnalyticsLearnMoreDialog";
 import { privateShouldBeEncrypted } from "../../../../../utils/rooms";
 import type { IServerVersions } from "matrix-js-sdk/src/matrix";
 import SettingsTab from "../SettingsTab";
@@ -309,36 +305,6 @@ export default class SecurityUserSettingsTab extends React.Component<IProps, ISt
             );
         }
 
-        let privacySection;
-        if (PosthogAnalytics.instance.isEnabled()) {
-            const onClickAnalyticsLearnMore = (): void => {
-                showAnalyticsLearnMoreDialog({
-                    primaryButton: _t("OK"),
-                    hasCancel: false,
-                });
-            };
-            privacySection = (
-                <SettingsSection heading={_t("Privacy")}>
-                    <SettingsSubsection
-                        heading={_t("Analytics")}
-                        description={_t(
-                            "Share anonymous data to help us identify issues. Nothing personal. No third parties.",
-                        )}
-                    >
-                        <AccessibleButton kind="link" onClick={onClickAnalyticsLearnMore}>
-                            {_t("Learn more")}
-                        </AccessibleButton>
-                        {PosthogAnalytics.instance.isEnabled() && (
-                            <SettingsFlag name="pseudonymousAnalyticsOptIn" level={SettingLevel.ACCOUNT} />
-                        )}
-                    </SettingsSubsection>
-                    <SettingsSubsection heading={_t("Sessions")}>
-                        <SettingsFlag name="deviceClientInformationOptIn" level={SettingLevel.ACCOUNT} />
-                    </SettingsSubsection>
-                </SettingsSection>
-            );
-        }
-
         let advancedSection;
         if (SettingsStore.getValue(UIFeature.AdvancedSettings)) {
             const ignoreUsersPanel = this.renderIgnoredUsers();
@@ -365,7 +331,6 @@ export default class SecurityUserSettingsTab extends React.Component<IProps, ISt
                     {crossSigning}
                     <CryptographyPanel />
                 </SettingsSection>
-                {privacySection}
                 {advancedSection}
             </SettingsTab>
         );

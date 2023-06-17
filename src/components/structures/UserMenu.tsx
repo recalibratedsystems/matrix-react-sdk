@@ -45,7 +45,6 @@ import { UIFeature } from "../../settings/UIFeature";
 import SpaceStore from "../../stores/spaces/SpaceStore";
 import { UPDATE_SELECTED_SPACE } from "../../stores/spaces";
 import UserIdentifierCustomisations from "../../customisations/UserIdentifier";
-import PosthogTrackers from "../../PosthogTrackers";
 import { ViewHomePagePayload } from "../../dispatcher/payloads/ViewHomePagePayload";
 import { Icon as LiveIcon } from "../../../res/img/compound/live-8px.svg";
 import { SDKContext } from "../../contexts/SDKContext";
@@ -204,8 +203,6 @@ export default class UserMenu extends React.Component<IProps, IState> {
     private onSwitchThemeClick = (ev: ButtonEvent): void => {
         ev.preventDefault();
         ev.stopPropagation();
-
-        PosthogTrackers.trackInteraction("WebUserMenuThemeToggleButton", ev);
 
         // Disable system theme matching if the user hits this button
         SettingsStore.setValue("use_system_theme", null, SettingLevel.DEVICE, false);

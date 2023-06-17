@@ -44,7 +44,6 @@ import MemberTile from "./MemberTile";
 import BaseAvatar from "../avatars/BaseAvatar";
 import { shouldShowComponent } from "../../../customisations/helpers/UIComponents";
 import { UIComponent } from "../../../settings/UIFeature";
-import PosthogTrackers from "../../../PosthogTrackers";
 import { SDKContext } from "../../../contexts/SDKContext";
 import AccessibleTooltipButton from "../elements/AccessibleTooltipButton";
 
@@ -440,8 +439,6 @@ export default class MemberList extends React.Component<IProps, IState> {
     }
 
     private onInviteButtonClick = (ev: ButtonEvent): void => {
-        PosthogTrackers.trackInteraction("WebRightPanelMemberListInviteButton", ev);
-
         if (MatrixClientPeg.safeGet().isGuest()) {
             dis.dispatch({ action: "require_registration" });
             return;

@@ -30,10 +30,8 @@ import { ViewRoomPayload } from "../../dispatcher/payloads/ViewRoomPayload";
 import * as Email from "../../email";
 import { useEventEmitterState } from "../../hooks/useEventEmitter";
 import { useMyRoomMembership } from "../../hooks/useRoomMembers";
-import { useFeatureEnabled } from "../../hooks/useSettings";
 import { useStateArray } from "../../hooks/useStateArray";
 import { _t } from "../../languageHandler";
-import PosthogTrackers from "../../PosthogTrackers";
 import { inviteMultipleToRoom, showRoomInviteDialog } from "../../RoomInvite";
 import { UIComponent } from "../../settings/UIFeature";
 import { UPDATE_EVENT } from "../../stores/AsyncStore";
@@ -132,7 +130,6 @@ const SpaceLandingAddButton: React.FC<{ space: Room }> = ({ space }) => {
                                     e.stopPropagation();
                                     closeMenu();
 
-                                    PosthogTrackers.trackInteraction("WebSpaceHomeCreateRoomButton", e);
                                     if (await showCreateNewRoom(space)) {
                                         defaultDispatcher.fire(Action.UpdateSpaceHierarchy);
                                     }

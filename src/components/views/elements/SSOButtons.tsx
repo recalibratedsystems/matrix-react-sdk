@@ -18,7 +18,6 @@ import React from "react";
 import { chunk } from "lodash";
 import classNames from "classnames";
 import { MatrixClient } from "matrix-js-sdk/src/client";
-import { Signup } from "@matrix-org/analytics-events/types/typescript/Signup";
 import {
     IdentityProviderBrand,
     IIdentityProvider,
@@ -32,7 +31,6 @@ import AccessibleButton from "./AccessibleButton";
 import { _t } from "../../../languageHandler";
 import AccessibleTooltipButton from "./AccessibleTooltipButton";
 import { mediaFromMxc } from "../../../customisations/Media";
-import { PosthogAnalytics } from "../../../PosthogAnalytics";
 
 interface ISSOButtonProps extends IProps {
     idp?: IIdentityProvider;
@@ -59,26 +57,6 @@ const getIcon = (brand: IdentityProviderBrand | string): string | null => {
     }
 };
 
-const getAuthenticationType = (brand: IdentityProviderBrand | string): Signup["authenticationType"] => {
-    switch (brand) {
-        case IdentityProviderBrand.Apple:
-            return "Apple";
-        case IdentityProviderBrand.Facebook:
-            return "Facebook";
-        case IdentityProviderBrand.Github:
-            return "GitHub";
-        case IdentityProviderBrand.Gitlab:
-            return "GitLab";
-        case IdentityProviderBrand.Google:
-            return "Google";
-        // Not supported on the analytics SDK at the moment.
-        // case IdentityProviderBrand.Twitter:
-        //     return "Twitter";
-        default:
-            return "SSO";
-    }
-};
-
 const SSOButton: React.FC<ISSOButtonProps> = ({
     matrixClient,
     loginType,
@@ -100,8 +78,6 @@ const SSOButton: React.FC<ISSOButtonProps> = ({
     }
 
     const onClick = (): void => {
-        const authenticationType = getAuthenticationType(idp?.brand ?? "");
-        PosthogAnalytics.instance.setAuthenticationType(authenticationType);
         PlatformPeg.get()?.startSingleSignOn(matrixClient, loginType, fragmentAfterLogin, idp?.id, action);
     };
 

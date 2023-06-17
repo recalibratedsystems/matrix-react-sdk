@@ -40,7 +40,6 @@ import "what-input";
 
 import type NewRecoveryMethodDialog from "../../async-components/views/dialogs/security/NewRecoveryMethodDialog";
 import type RecoveryMethodRemovedDialog from "../../async-components/views/dialogs/security/RecoveryMethodRemovedDialog";
-import PosthogTrackers from "../../PosthogTrackers";
 import { DecryptionFailureTracker } from "../../DecryptionFailureTracker";
 import { IMatrixClientCreds, MatrixClientPeg } from "../../MatrixClientPeg";
 import PlatformPeg from "../../PlatformPeg";
@@ -72,7 +71,6 @@ import { UseCase } from "../../settings/enums/UseCase";
 import type LoggedInViewType from "./LoggedInView";
 import LoggedInView from "./LoggedInView";
 import { Action } from "../../dispatcher/actions";
-import { hideToast as hideAnalyticsToast, showToast as showAnalyticsToast } from "../../toasts/AnalyticsToast";
 import { showToast as showNotificationsToast } from "../../toasts/DesktopNotificationsToast";
 import { OpenToTabPayload } from "../../dispatcher/payloads/OpenToTabPayload";
 import ErrorDialog from "../views/dialogs/ErrorDialog";
@@ -104,7 +102,6 @@ import UIStore, { UI_EVENTS } from "../../stores/UIStore";
 import SoftLogout from "./auth/SoftLogout";
 import { makeRoomPermalink } from "../../utils/permalinks/Permalinks";
 import { copyPlaintext } from "../../utils/strings";
-import { PosthogAnalytics } from "../../PosthogAnalytics";
 import { initSentry } from "../../sentry";
 import { showSpaceInvite } from "../../utils/space";
 import AccessibleButton, { ButtonEvent } from "../views/elements/AccessibleButton";
@@ -399,9 +396,6 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
             | (Pick<IState, K> | IState | null),
         callback?: () => void,
     ): void {
-        if (this.shouldTrackPageChange(this.state, { ...this.state, ...state })) {
-            this.startPageChangeTimer();
-        }
         super.setState<K>(state, callback);
     }
 
@@ -410,12 +404,6 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
     }
 
     public componentDidUpdate(prevProps: IProps, prevState: IState): void {
-        if (this.shouldTrackPageChange(prevState, this.state)) {
-            const durationMs = this.stopPageChangeTimer();
-            if (durationMs != null) {
-                PosthogTrackers.instance.trackPageChange(this.state.view, this.state.page_type, durationMs);
-            }
-        }
         if (this.focusComposer) {
             dis.fire(Action.FocusSendMessageComposer);
             this.focusComposer = false;
@@ -492,14 +480,6 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
         const measurement = entries.pop();
 
         return measurement ? measurement.duration : null;
-    }
-
-    private shouldTrackPageChange(prevState: IState, state: IState): boolean {
-        return (
-            prevState.currentRoomId !== state.currentRoomId ||
-            prevState.view !== state.view ||
-            prevState.page_type !== state.page_type
-        );
     }
 
     private setStateForNewView(state: Partial<IState>): void {
@@ -786,14 +766,6 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
                 this.setState({
                     hideToSRUsers: false,
                 });
-                break;
-            case Action.PseudonymousAnalyticsAccept:
-                hideAnalyticsToast();
-                SettingsStore.setValue("pseudonymousAnalyticsOptIn", null, SettingLevel.ACCOUNT, true);
-                break;
-            case Action.PseudonymousAnalyticsReject:
-                hideAnalyticsToast();
-                SettingsStore.setValue("pseudonymousAnalyticsOptIn", null, SettingLevel.ACCOUNT, false);
                 break;
             case Action.ShowThread: {
                 const { rootEvent, initialEvent, highlighted, scrollIntoView, push } = payload as ShowThreadPayload;
@@ -1188,7 +1160,6 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
 
     private async onShowPostLoginScreen(useCase?: UseCase): Promise<void> {
         if (useCase) {
-            PosthogAnalytics.instance.setProperty("ftueUseCaseSelection", useCase);
             SettingsStore.setValue("FTUE.useCaseSelection", null, SettingLevel.ACCOUNT, useCase);
         }
 
@@ -1246,33 +1217,6 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
                 });
             }
         }
-    }
-
-    private initPosthogAnalyticsToast(): void {
-        // Show the analytics toast if necessary
-        if (SettingsStore.getValue("pseudonymousAnalyticsOptIn") === null) {
-            showAnalyticsToast();
-        }
-
-        // Listen to changes in settings and show the toast if appropriate - this is necessary because account
-        // settings can still be changing at this point in app init (due to the initial sync being cached, then
-        // subsequent syncs being received from the server)
-        SettingsStore.watchSetting(
-            "pseudonymousAnalyticsOptIn",
-            null,
-            (originalSettingName, changedInRoomId, atLevel, newValueAtLevel, newValue) => {
-                if (newValue === null) {
-                    showAnalyticsToast();
-                } else {
-                    // It's possible for the value to change if a cached sync loads at page load, but then network
-                    // sync contains a new value of the flag with it set to false (e.g. another device set it since last
-                    // loading the page); so hide the toast.
-                    // (this flipping usually happens before first render so the user won't notice it; anyway flicker
-                    // on/off is probably better than showing the toast again when the user already dismissed it)
-                    hideAnalyticsToast();
-                }
-            },
-        );
     }
 
     private showScreenAfterLogin(): void {
@@ -1568,12 +1512,6 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
             // changing colour. More advanced behaviour will come once
             // we implement more settings.
             cli.setGlobalErrorOnUnknownDevices(false);
-        }
-
-        // Cannot be done in OnLoggedIn as at that point the AccountSettingsHandler doesn't yet have a client
-        // Will be moved to a pre-login flow as well
-        if (PosthogAnalytics.instance.isEnabled() && SettingsStore.isLevelSupported(SettingLevel.ACCOUNT)) {
-            this.initPosthogAnalyticsToast();
         }
     }
 

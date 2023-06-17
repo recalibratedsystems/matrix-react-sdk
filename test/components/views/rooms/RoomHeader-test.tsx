@@ -65,8 +65,6 @@ describe("RoomHeader", () => {
     let carol: RoomMember;
 
     beforeEach(async () => {
-        mockPlatformPeg({ supportsJitsiScreensharing: () => true });
-
         stubClient();
         client = mocked(MatrixClientPeg.safeGet());
         client.getUserId.mockReturnValue("@alice:example.org");

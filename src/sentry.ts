@@ -195,11 +195,6 @@ export async function sendSentryReport(userText: string, issueUrl: string, error
     }
 }
 
-export function setSentryUser(mxid: string): void {
-    if (!SdkConfig.get().sentry || !SettingsStore.getValue("automaticErrorReporting")) return;
-    Sentry.setUser({ username: mxid });
-}
-
 export async function initSentry(sentryConfig: IConfigOptions["sentry"]): Promise<void> {
     if (!sentryConfig) return;
     // Only enable Integrations.GlobalHandlers, which hooks uncaught exceptions, if automaticErrorReporting is true
@@ -210,11 +205,6 @@ export async function initSentry(sentryConfig: IConfigOptions["sentry"]): Promis
         new Sentry.Integrations.HttpContext(),
         new Sentry.Integrations.Dedupe(),
     ];
-
-    if (SettingsStore.getValue("automaticErrorReporting")) {
-        integrations.push(new Sentry.Integrations.GlobalHandlers({ onerror: false, onunhandledrejection: true }));
-        integrations.push(new Sentry.Integrations.TryCatch());
-    }
 
     Sentry.init({
         dsn: sentryConfig.dsn,

@@ -264,46 +264,8 @@ const NewRoomIntro: React.FC = () => {
         );
     }
 
-    function openRoomSettings(event: ButtonEvent): void {
-        event.preventDefault();
-        defaultDispatcher.dispatch({
-            action: "open_room_settings",
-            initial_tab_id: RoomSettingsTab.Security,
-        });
-    }
-
-    const subText = _t(
-        "Your private messages are normally encrypted, but this room isn't. " +
-            "Usually this is due to an unsupported device or method being used, " +
-            "like email invites.",
-    );
-
-    let subButton;
-    if (room.currentState.mayClientSendStateEvent(EventType.RoomEncryption, MatrixClientPeg.safeGet()) && !isLocalRoom) {
-        subButton = (
-            <AccessibleButton kind="link_inline" onClick={openRoomSettings}>
-                {_t("Enable encryption in settings.")}
-            </AccessibleButton>
-        );
-    }
-
-    const subtitle = (
-        <span>
-            {" "}
-            {subText} {subButton}{" "}
-        </span>
-    );
-
     return (
         <li className="mx_NewRoomIntro">
-            {!hasExpectedEncryptionSettings(cli, room) && (
-                <EventTileBubble
-                    className="mx_cryptoEvent mx_cryptoEvent_icon_warning"
-                    title={_t("End-to-end encryption isn't enabled")}
-                    subtitle={subtitle}
-                />
-            )}
-
             {body}
         </li>
     );

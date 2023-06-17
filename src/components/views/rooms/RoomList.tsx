@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { EventType, RoomType } from "matrix-js-sdk/src/@types/event";
+import { EventType } from "matrix-js-sdk/src/@types/event";
 import { Room } from "matrix-js-sdk/src/models/room";
 import React, { ComponentType, createRef, ReactComponentElement, SyntheticEvent } from "react";
 
@@ -29,7 +29,6 @@ import { ViewRoomPayload } from "../../../dispatcher/payloads/ViewRoomPayload";
 import { useEventEmitterState } from "../../../hooks/useEventEmitter";
 import { _t, _td } from "../../../languageHandler";
 import { MatrixClientPeg } from "../../../MatrixClientPeg";
-import PosthogTrackers from "../../../PosthogTrackers";
 import SettingsStore from "../../../settings/SettingsStore";
 import { UIComponent } from "../../../settings/UIFeature";
 import { RoomNotificationStateStore } from "../../../stores/notifications/RoomNotificationStateStore";
@@ -139,10 +138,6 @@ const DmAuxButton: React.FC<IAuxButtonProps> = ({ tabIndex, dispatcher = default
                                     e.stopPropagation();
                                     closeMenu();
                                     defaultDispatcher.dispatch({ action: "view_create_chat" });
-                                    PosthogTrackers.trackInteraction(
-                                        "WebRoomListRoomsSublistPlusMenuCreateChatItem",
-                                        e,
-                                    );
                                 }}
                             />
                         )}
@@ -191,7 +186,6 @@ const DmAuxButton: React.FC<IAuxButtonProps> = ({ tabIndex, dispatcher = default
                 tabIndex={tabIndex}
                 onClick={(e) => {
                     dispatcher.dispatch({ action: "view_create_chat" });
-                    PosthogTrackers.trackInteraction("WebRoomListRoomsSublistPlusMenuCreateChatItem", e);
                 }}
                 className="mx_RoomSublist_auxButton"
                 tooltipClassName="mx_RoomSublist_addRoomTooltip"
@@ -234,7 +228,6 @@ const UntaggedAuxButton: React.FC<IAuxButtonProps> = ({ tabIndex }) => {
                             room_id: activeSpace.roomId,
                             metricsTrigger: undefined, // other
                         });
-                        PosthogTrackers.trackInteraction("WebRoomListRoomsSublistPlusMenuExploreRoomsItem", e);
                     }}
                 />
                 {showCreateRoom ? (
@@ -247,7 +240,6 @@ const UntaggedAuxButton: React.FC<IAuxButtonProps> = ({ tabIndex }) => {
                                 e.stopPropagation();
                                 closeMenu();
                                 showCreateNewRoom(activeSpace);
-                                PosthogTrackers.trackInteraction("WebRoomListRoomsSublistPlusMenuCreateRoomItem", e);
                             }}
                             disabled={!canAddRooms}
                             tooltip={
@@ -287,7 +279,6 @@ const UntaggedAuxButton: React.FC<IAuxButtonProps> = ({ tabIndex }) => {
                                 e.stopPropagation();
                                 closeMenu();
                                 defaultDispatcher.dispatch({ action: "view_create_room" });
-                                PosthogTrackers.trackInteraction("WebRoomListRoomsSublistPlusMenuCreateRoomItem", e);
                             }}
                         />
                     </>
@@ -300,7 +291,6 @@ const UntaggedAuxButton: React.FC<IAuxButtonProps> = ({ tabIndex }) => {
                             e.preventDefault();
                             e.stopPropagation();
                             closeMenu();
-                            PosthogTrackers.trackInteraction("WebRoomListRoomsSublistPlusMenuExploreRoomsItem", e);
                             defaultDispatcher.fire(Action.ViewRoomDirectory);
                         }}
                     />

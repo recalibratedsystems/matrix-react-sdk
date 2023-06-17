@@ -27,15 +27,12 @@ import { TimelineRenderingType } from "../contexts/RoomContext";
 import MessageEvent from "../components/views/messages/MessageEvent";
 import MKeyVerificationConclusion from "../components/views/messages/MKeyVerificationConclusion";
 import TextualEvent from "../components/views/messages/TextualEvent";
-import EncryptionEvent from "../components/views/messages/EncryptionEvent";
 import { RoomPredecessorTile } from "../components/views/messages/RoomPredecessorTile";
 import RoomAvatarEvent from "../components/views/messages/RoomAvatarEvent";
 import { WIDGET_LAYOUT_EVENT_TYPE } from "../stores/widgets/WidgetLayoutStore";
 import { ALL_RULE_TYPES } from "../mjolnir/BanList";
 import { MatrixClientPeg } from "../MatrixClientPeg";
 import MKeyVerificationRequest from "../components/views/messages/MKeyVerificationRequest";
-import { WidgetType } from "../widgets/WidgetType";
-import MJitsiWidgetEvent from "../components/views/messages/MJitsiWidgetEvent";
 import { hasText } from "../TextForEvent";
 import { getMessageModerationState, MessageModerationState } from "../utils/EventUtils";
 import HiddenBody from "../components/views/messages/HiddenBody";
@@ -76,7 +73,6 @@ const VerificationReqFactory: Factory = (ref, props) => <MKeyVerificationRequest
 const HiddenEventFactory: Factory = (ref, props) => <HiddenBody ref={ref} {...props} />;
 
 // These factories are exported for reference comparison against pickFactory()
-export const JitsiEventFactory: Factory = (ref, props) => <MJitsiWidgetEvent ref={ref} {...props} />;
 export const JSONEventFactory: Factory = (ref, props) => <ViewSourceEvent ref={ref} {...props} />;
 export const RoomCreateEventFactory: Factory = (_ref, props) => <RoomPredecessorTile {...props} />;
 
@@ -92,7 +88,6 @@ const EVENT_TILE_TYPES = new Map<string, Factory>([
 ]);
 
 const STATE_EVENT_TILE_TYPES = new Map<string, Factory>([
-    [EventType.RoomEncryption, (ref, props) => <EncryptionEvent ref={ref} {...props} />],
     [EventType.RoomCanonicalAlias, TextualEventFactory],
     [EventType.RoomCreate, RoomCreateEventFactory],
     [EventType.RoomMember, TextualEventFactory],
@@ -212,11 +207,6 @@ export function pickFactory(
         if (!type) {
             // deleted/invalid widget - try the past widget type
             type = mxEvent.getPrevContent()["type"];
-        }
-
-        if (WidgetType.JITSI.matches(type)) {
-            // override the factory
-            return JitsiEventFactory;
         }
     }
 

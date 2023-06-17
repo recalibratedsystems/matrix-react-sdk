@@ -21,7 +21,7 @@ import { M_BEACON_INFO } from "matrix-js-sdk/src/@types/beacon";
 import { IContent, MatrixClient } from "matrix-js-sdk/src/matrix";
 
 import SettingsStore from "../settings/SettingsStore";
-import { haveRendererForEvent, JitsiEventFactory, JSONEventFactory, pickFactory } from "../events/EventTileFactory";
+import { haveRendererForEvent, JSONEventFactory, pickFactory } from "../events/EventTileFactory";
 import { getMessageModerationState, isLocationEvent, MessageModerationState } from "./EventUtils";
 
 
@@ -82,8 +82,7 @@ export function getEventDisplayInfo(
         eventType.startsWith("m.key.verification") ||
         (eventType === EventType.RoomMessage && msgtype?.startsWith("m.key.verification")) ||
         eventType === EventType.RoomCreate ||
-        eventType === EventType.RoomEncryption ||
-        factory === JitsiEventFactory;
+        eventType === EventType.RoomEncryption;
     const isLeftAlignedBubbleMessage = false;
     let isInfoMessage = calcIsInfoMessage(eventType, content, isBubbleMessage, isLeftAlignedBubbleMessage);
     // Some non-info messages want to be rendered in the appropriate bubble column but without the bubble background

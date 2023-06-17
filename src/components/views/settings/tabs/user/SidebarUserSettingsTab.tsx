@@ -26,7 +26,6 @@ import { SettingLevel } from "../../../../../settings/SettingLevel";
 import StyledCheckbox from "../../../elements/StyledCheckbox";
 import { useSettingValue } from "../../../../../hooks/useSettings";
 import { MetaSpace } from "../../../../../stores/spaces";
-import PosthogTrackers from "../../../../../PosthogTrackers";
 import SettingsTab from "../SettingsTab";
 import { SettingsSection } from "../../shared/SettingsSection";
 import SettingsSubsection, { SettingsSubsectionText } from "../../shared/SettingsSubsection";
@@ -40,12 +39,6 @@ export const onMetaSpaceChangeFactory =
             ...currentValue,
             [metaSpace]: e.target.checked,
         });
-
-        PosthogTrackers.trackInteraction(
-            interactionName,
-            e,
-            [MetaSpace.Home, null, MetaSpace.Favourites, MetaSpace.People, MetaSpace.Orphans].indexOf(metaSpace),
-        );
     };
 
 const SidebarUserSettingsTab: React.FC = () => {
@@ -59,7 +52,6 @@ const SidebarUserSettingsTab: React.FC = () => {
 
     const onAllRoomsInHomeToggle = async (event: ChangeEvent<HTMLInputElement>): Promise<void> => {
         await SettingsStore.setValue("Spaces.allRoomsInHome", null, SettingLevel.ACCOUNT, event.target.checked);
-        PosthogTrackers.trackInteraction("WebSettingsSidebarTabSpacesCheckbox", event, 1);
     };
 
     return (

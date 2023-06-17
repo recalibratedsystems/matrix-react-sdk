@@ -15,7 +15,6 @@ limitations under the License.
 */
 
 import { SdkContextClass } from "../src/contexts/SDKContext";
-import { PosthogAnalytics } from "../src/PosthogAnalytics";
 import { SlidingSyncManager } from "../src/SlidingSyncManager";
 import { RoomNotificationStateStore } from "../src/stores/notifications/RoomNotificationStateStore";
 import RightPanelStore from "../src/stores/right-panel/RightPanelStore";
@@ -36,7 +35,6 @@ export class TestSdkContext extends SdkContextClass {
     public _WidgetPermissionStore?: WidgetPermissionStore;
     public _WidgetLayoutStore?: WidgetLayoutStore;
     public _WidgetStore?: WidgetStore;
-    public _PosthogAnalytics?: PosthogAnalytics;
     public _SlidingSyncManager?: SlidingSyncManager;
     public _SpaceStore?: SpaceStoreClass;
 

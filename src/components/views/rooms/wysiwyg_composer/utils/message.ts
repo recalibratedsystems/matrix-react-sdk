@@ -14,12 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { Composer as ComposerEvent } from "@matrix-org/analytics-events/types/typescript/Composer";
 import { IContent, IEventRelation, MatrixEvent } from "matrix-js-sdk/src/models/event";
 import { ISendEventResponse, MatrixClient } from "matrix-js-sdk/src/matrix";
 import { THREAD_RELATION_TYPE } from "matrix-js-sdk/src/models/thread";
 
-import { PosthogAnalytics } from "../../../../../PosthogAnalytics";
 import SettingsStore from "../../../../../settings/SettingsStore";
 import { decorateStartSendingTime, sendRoundTripMetric } from "../../../../../sendTimePerformanceMetrics";
 import { RoomPermalinkCreator } from "../../../../../utils/permalinks/Permalinks";
@@ -60,21 +58,6 @@ export async function sendMessage(
     if (!roomId) {
         return;
     }
-
-    const posthogEvent: ComposerEvent = {
-        eventName: "Composer",
-        isEditing: false,
-        isReply: Boolean(replyToEvent),
-        // TODO thread
-        inThread: relation?.rel_type === THREAD_RELATION_TYPE.name,
-    };
-
-    // TODO thread
-    /*if (posthogEvent.inThread) {
-        const threadRoot = room.findEventById(relation?.event_id);
-        posthogEvent.startsThread = threadRoot?.getThread()?.events.length === 1;
-    }*/
-    PosthogAnalytics.instance.trackEvent<ComposerEvent>(posthogEvent);
 
     let content: IContent | null = null;
 
@@ -195,13 +178,6 @@ export async function editMessage(
     { roomContext, mxClient, editorStateTransfer }: EditMessageParams,
 ): Promise<ISendEventResponse | undefined> {
     const editedEvent = editorStateTransfer.getEvent();
-
-    PosthogAnalytics.instance.trackEvent<ComposerEvent>({
-        eventName: "Composer",
-        isEditing: true,
-        inThread: Boolean(editedEvent?.getThread()),
-        isReply: Boolean(editedEvent.replyEventId),
-    });
 
     // TODO emoji
     // Replace emoticon at the end of the message

@@ -147,12 +147,6 @@ export default async function createRoom(client: MatrixClient, opts: IOpts): Pro
             ...createOpts.creation_content,
             [RoomCreateTypeField]: opts.roomType,
         };
-    } else if (SettingsStore.getValue("feature_group_calls")) {
-        createOpts.power_level_content_override = {
-            events: {
-                ...DEFAULT_EVENT_POWER_LEVELS,
-            },
-        };
     }
 
     // By default, view the room after creating it

@@ -20,7 +20,6 @@ import { Room } from "matrix-js-sdk/src/models/room";
 import { RoomType } from "matrix-js-sdk/src/@types/event";
 import { JoinRule, Preset, Visibility } from "matrix-js-sdk/src/@types/partials";
 
-import SdkConfig from "../../../SdkConfig";
 import withValidation, { IFieldState, IValidationResult } from "../elements/Validation";
 import { _t } from "../../../languageHandler";
 import { MatrixClientPeg } from "../../../MatrixClientPeg";
@@ -84,7 +83,7 @@ export default class CreateRoomDialog extends React.Component<IProps, IState> {
             topic: "",
             alias: "",
             detailsOpen: false,
-            noFederate: SdkConfig.get().default_federate === false,
+            noFederate: true,
             nameIsValid: false,
             canChangeEncryption: true,
         };
@@ -197,10 +196,6 @@ export default class CreateRoomDialog extends React.Component<IProps, IState> {
         this.setState({ detailsOpen: (ev.target as HTMLDetailsElement).open });
     };
 
-    private onNoFederateChange = (noFederate: boolean): void => {
-        this.setState({ noFederate });
-    };
-
     private onNameValidate = async (fieldState: IFieldState): Promise<IValidationResult> => {
         const result = await CreateRoomDialog.validateRoomName(fieldState);
         this.setState({ nameIsValid: !!result.valid });
@@ -218,8 +213,6 @@ export default class CreateRoomDialog extends React.Component<IProps, IState> {
     });
 
     public render(): React.ReactNode {
-        const isVideoRoom = this.props.type === RoomType.ElementVideo;
-
         let aliasField: JSX.Element | undefined;
         if (this.state.joinRule === JoinRule.Public) {
             const domain = MatrixClientPeg.safeGet().getDomain()!;
@@ -287,9 +280,7 @@ export default class CreateRoomDialog extends React.Component<IProps, IState> {
             let microcopy: string;
             if (privateShouldBeEncrypted(MatrixClientPeg.safeGet())) {
                 if (this.state.canChangeEncryption) {
-                    microcopy = isVideoRoom
-                        ? _t("You can't disable this later. The room will be encrypted but the embedded call will not.")
-                        : _t("You can't disable this later. Bridges & most bots won't work yet.");
+                    microcopy = _t("You can't disable this later. Bridges & most bots won't work yet.");
                 } else {
                     microcopy = _t("Your server requires encryption to be enabled in private rooms.");
                 }
@@ -313,23 +304,8 @@ export default class CreateRoomDialog extends React.Component<IProps, IState> {
             );
         }
 
-        let federateLabel = _t(
-            "You might enable this if the room will only be used for collaborating with internal " +
-                "teams on your homeserver. This cannot be changed later.",
-        );
-        if (SdkConfig.get().default_federate === false) {
-            // We only change the label if the default setting is different to avoid jarring text changes to the
-            // user. They will have read the implications of turning this off/on, so no need to rephrase for them.
-            federateLabel = _t(
-                "You might disable this if the room will be used for collaborating with external " +
-                    "teams who have their own homeserver. This cannot be changed later.",
-            );
-        }
-
         let title: string;
-        if (isVideoRoom) {
-            title = _t("Create a video room");
-        } else if (this.props.parentSpace) {
+        if (this.props.parentSpace) {
             title = _t("Create a room");
         } else {
             title = this.state.joinRule === JoinRule.Public ? _t("Create a public room") : _t("Create a private room");
@@ -340,7 +316,6 @@ export default class CreateRoomDialog extends React.Component<IProps, IState> {
                 className="mx_CreateRoomDialog"
                 onFinished={this.props.onFinished}
                 title={title}
-                screenName="CreateRoom"
             >
                 <form onSubmit={this.onOk} onKeyDown={this.onKeyDown}>
                     <div className="mx_Dialog_content">
@@ -371,23 +346,15 @@ export default class CreateRoomDialog extends React.Component<IProps, IState> {
                         {publicPrivateLabel}
                         {e2eeSection}
                         {aliasField}
-                        <details onToggle={this.onDetailsToggled} className="mx_CreateRoomDialog_details">
+                        {/* <details onToggle={this.onDetailsToggled} className="mx_CreateRoomDialog_details">
                             <summary className="mx_CreateRoomDialog_details_summary">
                                 {this.state.detailsOpen ? _t("Hide advanced") : _t("Show advanced")}
                             </summary>
-                            <LabelledToggleSwitch
-                                label={_t("Block anyone not part of %(serverName)s from ever joining this room.", {
-                                    serverName: MatrixClientPeg.getHomeserverName(),
-                                })}
-                                onChange={this.onNoFederateChange}
-                                value={this.state.noFederate}
-                            />
-                            <p>{federateLabel}</p>
-                        </details>
+                        </details> */}
                     </div>
                 </form>
                 <DialogButtons
-                    primaryButton={isVideoRoom ? _t("Create video room") : _t("Create room")}
+                    primaryButton={_t("Create room")}
                     onPrimaryButtonClick={this.onOk}
                     onCancel={this.onCancel}
                 />

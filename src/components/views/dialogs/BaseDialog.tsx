@@ -26,7 +26,6 @@ import { MatrixClientPeg } from "../../../MatrixClientPeg";
 import { _t } from "../../../languageHandler";
 import MatrixClientContext from "../../../contexts/MatrixClientContext";
 import Heading from "../typography/Heading";
-import { PosthogScreenTracker, ScreenName } from "../../../PosthogTrackers";
 import { getKeyBindingsManager } from "../../../KeyBindingsManager";
 import { KeyBindingAction } from "../../../accessibility/KeyboardShortcuts";
 
@@ -72,8 +71,6 @@ interface IProps {
 
     "headerButton"?: JSX.Element;
 
-    // optional Posthog ScreenName to supply during the lifetime of this dialog
-    "screenName"?: ScreenName;
     onFinished(): void;
 }
 
@@ -156,7 +153,6 @@ export default class BaseDialog extends React.Component<IProps> {
 
         return (
             <MatrixClientContext.Provider value={this.matrixClient}>
-                {this.props.screenName && <PosthogScreenTracker screenName={this.props.screenName} />}
                 <FocusLock
                     returnFocus={true}
                     lockProps={lockProps}

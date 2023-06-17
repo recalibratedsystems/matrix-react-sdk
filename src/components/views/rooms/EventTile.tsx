@@ -63,7 +63,6 @@ import { DecryptionFailureTracker } from "../../../DecryptionFailureTracker";
 import RedactedBody from "../messages/RedactedBody";
 import { ViewRoomPayload } from "../../../dispatcher/payloads/ViewRoomPayload";
 import { shouldDisplayReply } from "../../../utils/Reply";
-import PosthogTrackers from "../../../PosthogTrackers";
 import TileErrorBoundary from "../messages/TileErrorBoundary";
 import { haveRendererForEvent, isMessageEvent, renderTile } from "../../../events/EventTileFactory";
 import ThreadSummary, { ThreadMessagePreview } from "./ThreadSummary";
@@ -1261,7 +1260,6 @@ export class UnwrappedEventTile extends React.Component<EventTileProps, IState> 
                                         rootEvent: this.props.mxEvent,
                                         push: true,
                                     });
-                                    PosthogTrackers.trackInteraction("WebThreadsPanelThreadItem", ev, index ?? -1);
                                     break;
                             }
                         },

@@ -49,7 +49,6 @@ import RoomName from "../elements/RoomName";
 import UIStore from "../../../stores/UIStore";
 import ExportDialog from "../dialogs/ExportDialog";
 import RightPanelStore from "../../../stores/right-panel/RightPanelStore";
-import PosthogTrackers from "../../../PosthogTrackers";
 import { shouldShowComponent } from "../../../customisations/helpers/UIComponents";
 import { PollHistoryDialog } from "../dialogs/PollHistoryDialog";
 
@@ -255,7 +254,6 @@ const AppsSection: React.FC<IAppsSectionProps> = ({ room }) => {
 
 const onRoomMembersClick = (ev: ButtonEvent): void => {
     RightPanelStore.instance.pushCard({ phase: RightPanelPhases.RoomMemberList }, true);
-    PosthogTrackers.trackInteraction("WebRightPanelRoomInfoPeopleButton", ev);
 };
 
 const onRoomFilesClick = (): void => {
@@ -268,7 +266,6 @@ const onRoomPinsClick = (): void => {
 
 const onRoomSettingsClick = (ev: ButtonEvent): void => {
     defaultDispatcher.dispatch({ action: "open_room_settings" });
-    PosthogTrackers.trackInteraction("WebRightPanelRoomInfoSettingsButton", ev);
 };
 
 const RoomSummaryCard: React.FC<IProps> = ({ room, permalinkCreator, onClose }) => {

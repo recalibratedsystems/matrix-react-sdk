@@ -130,11 +130,6 @@ export enum KeyBindingAction {
     /** Navigates forward */
     NextVisitedRoomOrSpace = "KeyBinding.NextVisitedRoomOrSpace",
 
-    /** Toggles microphone while on a call */
-    ToggleMicInCall = "KeyBinding.toggleMicInCall",
-    /** Toggles webcam while on a call */
-    ToggleWebcamInCall = "KeyBinding.toggleWebcamInCall",
-
     /** Accessibility actions */
     Escape = "KeyBinding.escape",
     Enter = "KeyBinding.enter",
@@ -168,7 +163,6 @@ export interface ICategory {
 export enum CategoryName {
     NAVIGATION = "Navigation",
     ACCESSIBILITY = "Accessibility",
-    CALLS = "Calls",
     COMPOSER = "Composer",
     ROOM_LIST = "Room List",
     ROOM = "Room",
@@ -225,10 +219,6 @@ export const CATEGORIES: Record<CategoryName, ICategory> = {
             KeyBindingAction.SelectPrevSendHistory,
             KeyBindingAction.ShowStickerPicker,
         ],
-    },
-    [CategoryName.CALLS]: {
-        categoryLabel: _td("Calls"),
-        settingNames: [KeyBindingAction.ToggleMicInCall, KeyBindingAction.ToggleWebcamInCall],
     },
     [CategoryName.ROOM]: {
         categoryLabel: _td("Room"),
@@ -411,20 +401,6 @@ export const KEYBOARD_SHORTCUTS: IKeyboardShortcuts = {
             key: Key.SEMICOLON,
         },
         displayName: _td("Send a sticker"),
-    },
-    [KeyBindingAction.ToggleMicInCall]: {
-        default: {
-            ctrlOrCmdKey: true,
-            key: Key.D,
-        },
-        displayName: _td("Toggle microphone mute"),
-    },
-    [KeyBindingAction.ToggleWebcamInCall]: {
-        default: {
-            ctrlOrCmdKey: true,
-            key: Key.E,
-        },
-        displayName: _td("Toggle webcam on/off"),
     },
     [KeyBindingAction.DismissReadMarker]: {
         default: {

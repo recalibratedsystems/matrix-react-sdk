@@ -39,7 +39,6 @@ import {
 } from "../../../stores/notifications/RoomNotificationStateStore";
 import { NotificationColor } from "../../../stores/notifications/NotificationColor";
 import { SummarizedNotificationState } from "../../../stores/notifications/SummarizedNotificationState";
-import PosthogTrackers from "../../../PosthogTrackers";
 import { ButtonEvent } from "../elements/AccessibleButton";
 import { doesRoomOrThreadHaveUnreadMessages } from "../../../Unread";
 
@@ -254,15 +253,6 @@ export default class RoomHeaderButtons extends HeaderButtons<IProps> {
     };
     private onTimelineCardClicked = (): void => {
         this.setPhase(RightPanelPhases.Timeline);
-    };
-
-    private onThreadsPanelClicked = (ev: ButtonEvent): void => {
-        if (this.state.phase && RoomHeaderButtons.THREAD_PHASES.includes(this.state.phase)) {
-            RightPanelStore.instance.togglePanel(this.props.room?.roomId ?? null);
-        } else {
-            showThreadPanel();
-            PosthogTrackers.trackInteraction("WebRoomHeaderButtonsThreadsButton", ev);
-        }
     };
 
     public renderButtons(): JSX.Element {

@@ -224,18 +224,6 @@ export enum Action {
     EditEvent = "edit_event",
 
     /**
-     * The user accepted pseudonymous analytics (i.e. posthog) from the toast
-     * Payload: none
-     */
-    PseudonymousAnalyticsAccept = "pseudonymous_analytics_accept",
-
-    /**
-     * The user rejected pseudonymous analytics (i.e. posthog) from the toast
-     * Payload: none
-     */
-    PseudonymousAnalyticsReject = "pseudonymous_analytics_reject",
-
-    /**
      * Fires after crypto is setup if key backup is not enabled
      * Used to trigger auto rageshakes when configured
      */

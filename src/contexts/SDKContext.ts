@@ -18,7 +18,6 @@ import { MatrixClient } from "matrix-js-sdk/src/matrix";
 import { createContext } from "react";
 
 import defaultDispatcher from "../dispatcher/dispatcher";
-import { PosthogAnalytics } from "../PosthogAnalytics";
 import { SlidingSyncManager } from "../SlidingSyncManager";
 import { AccountPasswordStore } from "../stores/AccountPasswordStore";
 import { MemberListStore } from "../stores/MemberListStore";
@@ -64,7 +63,6 @@ export class SdkContextClass {
     protected _RoomViewStore?: RoomViewStore;
     protected _WidgetLayoutStore?: WidgetLayoutStore;
     protected _WidgetStore?: WidgetStore;
-    protected _PosthogAnalytics?: PosthogAnalytics;
     protected _SlidingSyncManager?: SlidingSyncManager;
     protected _SpaceStore?: SpaceStoreClass;
     protected _TypingStore?: TypingStore;
@@ -114,12 +112,6 @@ export class SdkContextClass {
             this._WidgetStore = WidgetStore.instance;
         }
         return this._WidgetStore;
-    }
-    public get posthogAnalytics(): PosthogAnalytics {
-        if (!this._PosthogAnalytics) {
-            this._PosthogAnalytics = PosthogAnalytics.instance;
-        }
-        return this._PosthogAnalytics;
     }
     public get memberListStore(): MemberListStore {
         if (!this._MemberListStore) {

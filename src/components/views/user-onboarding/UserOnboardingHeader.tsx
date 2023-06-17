@@ -18,14 +18,12 @@ import * as React from "react";
 
 import defaultDispatcher from "../../../dispatcher/dispatcher";
 import { _t } from "../../../languageHandler";
-import PosthogTrackers from "../../../PosthogTrackers";
 import SdkConfig from "../../../SdkConfig";
 import { UseCase } from "../../../settings/enums/UseCase";
 import AccessibleButton, { ButtonEvent } from "../../views/elements/AccessibleButton";
 import Heading from "../../views/typography/Heading";
 
 const onClickSendDm = (ev: ButtonEvent): void => {
-    PosthogTrackers.trackInteraction("WebUserOnboardingHeaderSendDm", ev);
     defaultDispatcher.dispatch({ action: "view_create_chat" });
 };
 

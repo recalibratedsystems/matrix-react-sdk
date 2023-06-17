@@ -279,10 +279,6 @@ export class StopGapWidget extends EventEmitter {
         });
         this.messaging.on("capabilitiesNotified", () => this.emit("capabilitiesNotified"));
         this.messaging.on(`action:${WidgetApiFromWidgetAction.OpenModalWidget}`, this.onOpenModal);
-        this.messaging.on(`action:${ElementWidgetActions.JoinCall}`, () => {
-            // pause voice broadcast recording when any widget sends a "join"
-            SdkContextClass.instance.voiceBroadcastRecordingsStore.getCurrent()?.pause();
-        });
 
         // Always attach a handler for ViewRoom, but permission check it internally
         this.messaging.on(`action:${ElementWidgetActions.ViewRoom}`, (ev: CustomEvent<IViewRoomApiRequest>) => {
@@ -390,21 +386,6 @@ export class StopGapWidget extends EventEmitter {
                     IntegrationManagers.sharedInstance()?.getPrimaryManager()?.open(room, `type_${integType}`, integId);
                 },
             );
-        }
-
-        if (WidgetType.JITSI.matches(this.mockWidget.type)) {
-            this.messaging.on(`action:${ElementWidgetActions.HangupCall}`, (ev: CustomEvent<IHangupCallApiRequest>) => {
-                ev.preventDefault();
-                if (ev.detail.data?.errorMessage) {
-                    Modal.createDialog(ErrorDialog, {
-                        title: _t("Connection lost"),
-                        description: _t("You were disconnected from the call. (Error: %(message)s)", {
-                            message: ev.detail.data.errorMessage,
-                        }),
-                    });
-                }
-                this.messaging?.transport.reply(ev.detail, <IWidgetApiRequestEmptyData>{});
-            });
         }
     }
 

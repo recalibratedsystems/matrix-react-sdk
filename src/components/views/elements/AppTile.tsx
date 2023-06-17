@@ -169,7 +169,6 @@ export default class AppTile extends React.Component<IProps, IState> {
 
     // This is a function to make the impact of calling SettingsStore slightly less
     private hasPermissionToLoad = (props: IProps): boolean => {
-        if (this.usingLocalWidget()) return true;
         if (!props.room) return true; // user widgets always have permissions
         const opts: ApprovalOpts = { approved: undefined };
         ModuleRunner.instance.invoke(WidgetLifecycle.PreLoadRequest, opts, new ElementWidget(this.props.app));
@@ -193,9 +192,6 @@ export default class AppTile extends React.Component<IProps, IState> {
             if (this.props.room && SdkContextClass.instance.roomViewStore.getRoomId() !== this.props.room.roomId) {
                 // If we are not actively looking at the room then destroy this widget entirely.
                 this.endWidgetActions();
-            } else if (WidgetType.JITSI.matches(this.props.app.type)) {
-                // If this was a Jitsi then reload to end call.
-                this.reload();
             } else {
                 // Otherwise just cancel its persistence.
                 ActiveWidgetStore.instance.destroyPersistentWidget(
@@ -490,15 +486,6 @@ export default class AppTile extends React.Component<IProps, IState> {
         return appTileName;
     }
 
-    /**
-     * Whether we're using a local version of the widget rather than loading the
-     * actual widget URL
-     * @returns {bool} true If using a local version of the widget
-     */
-    private usingLocalWidget(): boolean {
-        return WidgetType.JITSI.matches(this.props.app.type);
-    }
-
     private getTileTitle(): JSX.Element {
         const name = this.formatAppTileName();
         const titleSpacer = <span>&nbsp;-&nbsp;</span>;
@@ -534,11 +521,6 @@ export default class AppTile extends React.Component<IProps, IState> {
 
     // TODO replace with full screen interactions
     private onPopoutWidgetClick = (): void => {
-        // Ensure Jitsi conferences are closed on pop-out, to not confuse the user to join them
-        // twice from the same computer, which Jitsi can have problems with (audio echo/gain-loop).
-        if (WidgetType.JITSI.matches(this.props.app.type)) {
-            this.reload();
-        }
         // Using Object.assign workaround as the following opens in a new window instead of a new tab.
         // window.open(this._getPopoutUrl(), '_blank', 'noopener=yes');
         Object.assign(document.createElement("a"), {

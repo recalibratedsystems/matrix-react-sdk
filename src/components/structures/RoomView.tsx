@@ -95,7 +95,6 @@ import { FocusComposerPayload } from "../../dispatcher/payloads/FocusComposerPay
 import { LocalRoom, LocalRoomState } from "../../models/LocalRoom";
 import { createRoomFromLocalRoom } from "../../utils/direct-messages";
 import NewRoomIntro from "../views/rooms/NewRoomIntro";
-import EncryptionEvent from "../views/messages/EncryptionEvent";
 import { StaticNotificationState } from "../../stores/notifications/StaticNotificationState";
 import { isLocalRoom } from "../../utils/localRoom/isLocalRoom";
 import { ShowThreadPayload } from "../../dispatcher/payloads/ShowThreadPayload";
@@ -108,7 +107,6 @@ import { shouldEncryptRoomWithSingle3rdPartyInvite } from "../../utils/room/shou
 import { WaitingForThirdPartyRoomView } from "./WaitingForThirdPartyRoomView";
 
 const DEBUG = false;
-const PREVENT_MULTIPLE_JITSI_WITHIN = 30_000;
 let debuglog = function (msg: string): void {};
 
 const BROWSER_SUPPORTS_SANDBOX = "sandbox" in document.createElement("iframe");
@@ -238,12 +236,6 @@ interface LocalRoomViewProps {
 function LocalRoomView(props: LocalRoomViewProps): ReactElement {
     const context = useContext(RoomContext);
     const room = context.room as LocalRoom;
-    const encryptionEvent = props.localRoom.currentState.getStateEvents(EventType.RoomEncryption)[0];
-    let encryptionTile: ReactNode;
-
-    if (encryptionEvent) {
-        encryptionTile = <EncryptionEvent mxEvent={encryptionEvent} />;
-    }
 
     const onRetryClicked = (): void => {
         room.state = LocalRoomState.NEW;
@@ -302,7 +294,6 @@ function LocalRoomView(props: LocalRoomViewProps): ReactElement {
                     <FileDropTarget parent={props.roomView.current} onFileDrop={props.onFileDrop} />
                     <div className="mx_RoomView_timeline">
                         <ScrollPanel className="mx_RoomView_messagePanel" resizeNotifier={props.resizeNotifier}>
-                            {encryptionTile}
                             <NewRoomIntro />
                         </ScrollPanel>
                     </div>

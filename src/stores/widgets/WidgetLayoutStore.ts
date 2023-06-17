@@ -223,7 +223,7 @@ export class WidgetLayoutStore extends ReadyWatchingStore {
             const stateContainer = roomLayout?.widgets?.[widget.id]?.container;
             const manualContainer = userLayout?.widgets?.[widget.id]?.container;
             const isLegacyPinned = !!legacyPinned?.[widget.id];
-            const defaultContainer = WidgetType.JITSI.matches(widget.type) ? Container.Top : Container.Right;
+            const defaultContainer = Container.Right;
             if (manualContainer ? manualContainer === Container.Center : stateContainer === Container.Center) {
                 if (centerWidgets.length) {
                     console.error("Tried to push a second widget into the center container");
@@ -258,8 +258,8 @@ export class WidgetLayoutStore extends ReadyWatchingStore {
 
             // Jitsi widgets are defaulted to be the leftmost widget whereas other widgets
             // default to the right side.
-            const defaultA = WidgetType.JITSI.matches(a.type) ? Number.MIN_SAFE_INTEGER : Number.MAX_SAFE_INTEGER;
-            const defaultB = WidgetType.JITSI.matches(b.type) ? Number.MIN_SAFE_INTEGER : Number.MAX_SAFE_INTEGER;
+            const defaultA = Number.MAX_SAFE_INTEGER;
+            const defaultB = Number.MAX_SAFE_INTEGER;
 
             const orderA = defaultNumber(userLayoutA?.index, defaultNumber(layoutA?.index, defaultA));
             const orderB = defaultNumber(userLayoutB?.index, defaultNumber(layoutB?.index, defaultB));

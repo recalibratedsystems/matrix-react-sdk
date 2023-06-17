@@ -26,7 +26,6 @@ import { FetchRoomFn, ListNotificationState } from "./ListNotificationState";
 import { RoomNotificationState } from "./RoomNotificationState";
 import { SummarizedNotificationState } from "./SummarizedNotificationState";
 import { VisibilityProvider } from "../room-list/filters/VisibilityProvider";
-import { PosthogAnalytics } from "../../PosthogAnalytics";
 import SettingsStore from "../../settings/SettingsStore";
 
 interface IState {}
@@ -134,8 +133,6 @@ export class RoomNotificationStateStore extends AsyncStoreWithClient<IState> {
                 if (room.tags[DefaultTagID.Favourite] && !room.getType()) numFavourites++;
             }
         }
-
-        PosthogAnalytics.instance.setProperty("numFavouriteRooms", numFavourites);
 
         if (
             this.globalState.symbol !== globalState.symbol ||

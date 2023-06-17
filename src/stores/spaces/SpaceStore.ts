@@ -59,7 +59,6 @@ import {
     SpaceDescendantMap,
     flattenSpaceHierarchy,
 } from "./flattenSpaceHierarchy";
-import { PosthogAnalytics } from "../../PosthogAnalytics";
 import { ViewRoomPayload } from "../../dispatcher/payloads/ViewRoomPayload";
 import { ViewHomePagePayload } from "../../dispatcher/payloads/ViewHomePagePayload";
 import { SwitchSpacePayload } from "../../dispatcher/payloads/SwitchSpacePayload";
@@ -602,8 +601,6 @@ export class SpaceStoreClass extends AsyncStoreWithClient<IState> {
                 this.parentMap.getOrCreate(child.roomId, new Set()).add(space.roomId);
             });
         });
-
-        PosthogAnalytics.instance.setProperty("numSpaces", joinedSpaces.length);
     };
 
     private rebuildHomeSpace = (): void => {
@@ -1153,7 +1150,6 @@ export class SpaceStoreClass extends AsyncStoreWithClient<IState> {
         this._enabledMetaSpaces = metaSpaceOrder.filter((k) => enabledMetaSpaces[k]);
 
         this._allRoomsInHome = SettingsStore.getValue("Spaces.allRoomsInHome");
-        this.sendUserProperties();
 
         this.rebuildSpaceHierarchy(); // trigger an initial update
         // rebuildSpaceHierarchy will only send an update if the spaces have changed.
@@ -1173,15 +1169,6 @@ export class SpaceStoreClass extends AsyncStoreWithClient<IState> {
         } else {
             this.switchSpaceIfNeeded();
         }
-    }
-
-    private sendUserProperties(): void {
-        const enabled = new Set(this.enabledMetaSpaces);
-        PosthogAnalytics.instance.setProperty("WebMetaSpaceHomeEnabled", enabled.has(MetaSpace.Home));
-        PosthogAnalytics.instance.setProperty("WebMetaSpaceHomeAllRooms", this.allRoomsInHome);
-        PosthogAnalytics.instance.setProperty("WebMetaSpacePeopleEnabled", enabled.has(MetaSpace.People));
-        PosthogAnalytics.instance.setProperty("WebMetaSpaceFavouritesEnabled", enabled.has(MetaSpace.Favourites));
-        PosthogAnalytics.instance.setProperty("WebMetaSpaceOrphansEnabled", enabled.has(MetaSpace.Orphans));
     }
 
     private goToFirstSpace(contextSwitch = false): void {
@@ -1257,7 +1244,6 @@ export class SpaceStoreClass extends AsyncStoreWithClient<IState> {
                             if (this.enabledMetaSpaces.includes(MetaSpace.Home)) {
                                 this.rebuildHomeSpace();
                             }
-                            this.sendUserProperties();
                         }
                         break;
                     }
@@ -1288,7 +1274,6 @@ export class SpaceStoreClass extends AsyncStoreWithClient<IState> {
                             }
 
                             this.emit(UPDATE_TOP_LEVEL_SPACES, this.spacePanelSpaces, this.enabledMetaSpaces);
-                            this.sendUserProperties();
                         }
                         break;
                     }

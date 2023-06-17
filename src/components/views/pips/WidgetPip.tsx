@@ -21,20 +21,13 @@ import PersistentApp from "../elements/PersistentApp";
 import defaultDispatcher from "../../../dispatcher/dispatcher";
 import { ViewRoomPayload } from "../../../dispatcher/payloads/ViewRoomPayload";
 import { Action } from "../../../dispatcher/actions";
-import { useCallForWidget } from "../../../hooks/useCall";
 import WidgetStore from "../../../stores/WidgetStore";
 import { Container, WidgetLayoutStore } from "../../../stores/widgets/WidgetLayoutStore";
 import { useTypedEventEmitterState } from "../../../hooks/useEventEmitter";
 import Toolbar from "../../../accessibility/Toolbar";
-import { RovingAccessibleButton, RovingAccessibleTooltipButton } from "../../../accessibility/RovingTabIndex";
+import { RovingAccessibleButton } from "../../../accessibility/RovingTabIndex";
 import { Icon as BackIcon } from "../../../../res/img/element-icons/back.svg";
-import { Icon as HangupIcon } from "../../../../res/img/element-icons/call/hangup.svg";
 import { _t } from "../../../languageHandler";
-import { WidgetType } from "../../../widgets/WidgetType";
-import { WidgetMessagingStore } from "../../../stores/widgets/WidgetMessagingStore";
-import WidgetUtils from "../../../utils/WidgetUtils";
-import { ElementWidgetActions } from "../../../stores/widgets/ElementWidgetActions";
-import { Alignment } from "../elements/Tooltip";
 
 interface Props {
     widgetId: string;
@@ -60,21 +53,12 @@ export const WidgetPip: FC<Props> = ({ widgetId, room, viewingRoom, onStartMovin
         useCallback(() => room.name, [room]),
     );
 
-    const call = useCallForWidget(widgetId, room.roomId);
-
     const onBackClick = useCallback(
         (ev) => {
             ev.preventDefault();
             ev.stopPropagation();
 
-            if (call !== null) {
-                defaultDispatcher.dispatch<ViewRoomPayload>({
-                    action: Action.ViewRoom,
-                    room_id: room.roomId,
-                    view_call: true,
-                    metricsTrigger: "WebFloatingCallWindow",
-                });
-            } else if (viewingRoom) {
+            if (viewingRoom) {
                 WidgetLayoutStore.instance.moveToContainer(room, widget, Container.Center);
             } else {
                 defaultDispatcher.dispatch<ViewRoomPayload>({
@@ -84,25 +68,7 @@ export const WidgetPip: FC<Props> = ({ widgetId, room, viewingRoom, onStartMovin
                 });
             }
         },
-        [room, call, widget, viewingRoom],
-    );
-
-    const onLeaveClick = useCallback(
-        (ev) => {
-            ev.preventDefault();
-            ev.stopPropagation();
-
-            if (call !== null) {
-                call.disconnect().catch((e) => console.error("Failed to leave call", e));
-            } else {
-                // Assumed to be a Jitsi widget
-                WidgetMessagingStore.instance
-                    .getMessagingForUid(WidgetUtils.getWidgetUid(widget))
-                    ?.transport.send(ElementWidgetActions.HangupCall, {})
-                    .catch((e) => console.error("Failed to leave Jitsi", e));
-            }
-        },
-        [call, widget],
+        [room, widget, viewingRoom],
     );
 
     return (
@@ -123,18 +89,6 @@ export const WidgetPip: FC<Props> = ({ widgetId, room, viewingRoom, onStartMovin
                 pointerEvents="none"
                 movePersistedElement={movePersistedElement}
             />
-            {(call !== null || WidgetType.JITSI.matches(widget?.type)) && (
-                <Toolbar className="mx_WidgetPip_footer">
-                    <RovingAccessibleTooltipButton
-                        onClick={onLeaveClick}
-                        tooltip={_t("Leave")}
-                        aria-label={_t("Leave")}
-                        alignment={Alignment.Top}
-                    >
-                        <HangupIcon className="mx_Icon mx_Icon_24" />
-                    </RovingAccessibleTooltipButton>
-                </Toolbar>
-            )}
         </div>
     );
 };

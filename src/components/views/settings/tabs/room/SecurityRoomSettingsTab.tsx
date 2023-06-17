@@ -39,7 +39,6 @@ import JoinRuleSettings from "../../JoinRuleSettings";
 import ErrorDialog from "../../../dialogs/ErrorDialog";
 import SettingsFieldset from "../../SettingsFieldset";
 import ExternalLink from "../../../elements/ExternalLink";
-import PosthogTrackers from "../../../../../PosthogTrackers";
 import MatrixClientContext from "../../../../../contexts/MatrixClientContext";
 import { SettingsSection } from "../../shared/SettingsSection";
 import SettingsTab from "../SettingsTab";
@@ -211,8 +210,6 @@ export default class SecurityRoomSettingsTab extends React.Component<IProps, ISt
 
     private createNewRoom = async (defaultPublic: boolean, defaultEncrypted: boolean): Promise<boolean> => {
         const modal = Modal.createDialog(CreateRoomDialog, { defaultPublic, defaultEncrypted });
-
-        PosthogTrackers.trackInteraction("WebRoomSettingsSecurityTabCreateNewRoomButton");
 
         const [shouldCreate, opts] = await modal.finished;
         if (shouldCreate) {

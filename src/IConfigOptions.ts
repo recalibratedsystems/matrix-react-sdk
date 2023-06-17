@@ -85,7 +85,6 @@ export interface IConfigOptions {
 
     default_theme?: "light" | "dark" | string; // custom themes are strings
     default_country_code?: string; // ISO 3166 alpha2 country code
-    default_federate?: boolean;
     default_device_display_name?: string; // for device naming on login+registration
 
     setting_defaults?: Record<string, any>; // <SettingName, Value>
@@ -122,10 +121,6 @@ export interface IConfigOptions {
         servers: string[];
     };
 
-    posthog?: {
-        project_api_key: string;
-        api_host: string; // hostname
-    };
     analytics_owner?: string; // defaults to `brand`
     privacy_policy_url?: string; // location for cookie policy
 

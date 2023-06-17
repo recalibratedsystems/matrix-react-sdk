@@ -30,11 +30,8 @@ import dis from "../../../dispatcher/dispatcher";
 import SettingsStore from "../../../settings/SettingsStore";
 import Modal from "../../../Modal";
 import QuestionDialog from "../dialogs/QuestionDialog";
-import ErrorDialog from "../dialogs/ErrorDialog";
-import { WidgetType } from "../../../widgets/WidgetType";
 import MatrixClientContext from "../../../contexts/MatrixClientContext";
 import { Container, WidgetLayoutStore } from "../../../stores/widgets/WidgetLayoutStore";
-import { getConfigLivestreamUrl, startJitsiAudioLivestream } from "../../../Livestream";
 import { ModuleRunner } from "../../../modules/ModuleRunner";
 import { ElementWidget } from "../../../stores/widgets/StopGapWidget";
 
@@ -62,27 +59,6 @@ export const WidgetContextMenu: React.FC<IProps> = ({
 
     const widgetMessaging = WidgetMessagingStore.instance.getMessagingForUid(WidgetUtils.getWidgetUid(app));
     const canModify = userWidget || WidgetUtils.canUserModifyWidgets(cli, roomId);
-
-    let streamAudioStreamButton: JSX.Element | undefined;
-    if (roomId && getConfigLivestreamUrl() && WidgetType.JITSI.matches(app.type)) {
-        const onStreamAudioClick = async (): Promise<void> => {
-            try {
-                await startJitsiAudioLivestream(cli, widgetMessaging!, roomId);
-            } catch (err) {
-                logger.error("Failed to start livestream", err);
-                // XXX: won't i18n well, but looks like widget api only support 'message'?
-                const message = err.message || _t("Unable to start audio streaming.");
-                Modal.createDialog(ErrorDialog, {
-                    title: _t("Failed to start livestream"),
-                    description: message,
-                });
-            }
-            onFinished();
-        };
-        streamAudioStreamButton = (
-            <IconizedContextMenuOption onClick={onStreamAudioClick} label={_t("Start audio stream")} />
-        );
-    }
 
     const pinnedWidgets = room ? WidgetLayoutStore.instance.getContainerWidgets(room, Container.Top) : [];
     const widgetIndex = pinnedWidgets.findIndex((widget) => widget.id === app.id);
@@ -160,9 +136,8 @@ export const WidgetContextMenu: React.FC<IProps> = ({
             (SettingsStore.getValue("allowedWidgets", roomId)[app.eventId] ?? false)) ||
         app.creatorUserId === cli.getUserId();
 
-    const isLocalWidget = WidgetType.JITSI.matches(app.type);
     let revokeButton: JSX.Element | undefined;
-    if (!userWidget && !isLocalWidget && isAllowedWidget) {
+    if (!userWidget && isAllowedWidget) {
         const opts: ApprovalOpts = { approved: undefined };
         ModuleRunner.instance.invoke(WidgetLifecycle.PreLoadRequest, opts, new ElementWidget(app));
 
@@ -210,7 +185,6 @@ export const WidgetContextMenu: React.FC<IProps> = ({
     return (
         <IconizedContextMenu {...props} chevronFace={ChevronFace.None} onFinished={onFinished}>
             <IconizedContextMenuOptionList>
-                {streamAudioStreamButton}
                 {editButton}
                 {revokeButton}
                 {deleteButton}

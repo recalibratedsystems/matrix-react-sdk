@@ -396,27 +396,6 @@ describe("RoomView", () => {
         const widget2Id = "widget2";
         const otherUserId = "@other:example.com";
 
-        const addJitsiWidget = async (id: string, user: string, ts?: number): Promise<void> => {
-            const widgetEvent = mkEvent({
-                event: true,
-                room: room.roomId,
-                user,
-                type: "im.vector.modular.widgets",
-                content: {
-                    id,
-                    name: "Jitsi",
-                    type: WidgetType.JITSI.preferred,
-                    url: "https://example.com",
-                },
-                skey: id,
-                ts,
-            });
-            room.addLiveEvents([widgetEvent]);
-            room.currentState.setStateEvents([widgetEvent]);
-            cli.emit(RoomStateEvent.Events, widgetEvent, room.currentState, null);
-            await flushPromises();
-        };
-
         beforeEach(async () => {
             jest.spyOn(WidgetUtils, "setRoomWidget");
             const widgetStore = WidgetStore.instance;
@@ -429,51 +408,5 @@ describe("RoomView", () => {
                 expect(WidgetUtils.setRoomWidget).not.toHaveBeenCalledWith(room.roomId, widget2Id);
             });
         };
-
-        describe("and there is a Jitsi widget from another user", () => {
-            beforeEach(async () => {
-                await addJitsiWidget(widget1Id, otherUserId, 10_000);
-            });
-
-            describe("and the current user adds a Jitsi widget after 10s", () => {
-                beforeEach(async () => {
-                    await addJitsiWidget(widget2Id, cli.getSafeUserId(), 20_000);
-                });
-
-                it("the last Jitsi widget should be removed", () => {
-                    expect(WidgetUtils.setRoomWidget).toHaveBeenCalledWith(cli, room.roomId, widget2Id);
-                });
-            });
-
-            describe("and the current user adds a Jitsi widget after two minutes", () => {
-                beforeEach(async () => {
-                    await addJitsiWidget(widget2Id, cli.getSafeUserId(), 130_000);
-                });
-
-                itShouldNotRemoveTheLastWidget();
-            });
-
-            describe("and the current user adds a Jitsi widget without timestamp", () => {
-                beforeEach(async () => {
-                    await addJitsiWidget(widget2Id, cli.getSafeUserId());
-                });
-
-                itShouldNotRemoveTheLastWidget();
-            });
-        });
-
-        describe("and there is a Jitsi widget from another user without timestamp", () => {
-            beforeEach(async () => {
-                await addJitsiWidget(widget1Id, otherUserId);
-            });
-
-            describe("and the current user adds a Jitsi widget", () => {
-                beforeEach(async () => {
-                    await addJitsiWidget(widget2Id, cli.getSafeUserId(), 10_000);
-                });
-
-                itShouldNotRemoveTheLastWidget();
-            });
-        });
     });
 });

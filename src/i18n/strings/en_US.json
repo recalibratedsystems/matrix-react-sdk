@@ -221,7 +221,6 @@
     "Sent messages will be stored until your connection has returned.": "Sent messages will be stored until your connection has returned.",
     "Cancel": "Cancel",
     "Start automatically after system login": "Start automatically after system login",
-    "Analytics": "Analytics",
     "Banned by %(displayName)s": "Banned by %(displayName)s",
     "Options": "Options",
     "Passphrases must match": "Passphrases must match",

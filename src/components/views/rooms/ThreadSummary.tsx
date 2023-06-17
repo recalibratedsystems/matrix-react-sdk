@@ -21,7 +21,6 @@ import { IContent, MatrixEvent, MatrixEventEvent } from "matrix-js-sdk/src/model
 import { _t } from "../../../languageHandler";
 import { CardContext } from "../right_panel/context";
 import AccessibleButton, { ButtonEvent } from "../elements/AccessibleButton";
-import PosthogTrackers from "../../../PosthogTrackers";
 import { useTypedEventEmitter, useTypedEventEmitterState } from "../../../hooks/useEventEmitter";
 import RoomContext from "../../../contexts/RoomContext";
 import { MessagePreviewStore } from "../../../stores/room-list/MessagePreviewStore";
@@ -58,7 +57,6 @@ const ThreadSummary: React.FC<IProps> = ({ mxEvent, thread, ...props }) => {
                     rootEvent: mxEvent,
                     push: cardContext.isCard,
                 });
-                PosthogTrackers.trackInteraction("WebRoomTimelineThreadSummaryButton", ev);
             }}
             aria-label={_t("Open thread")}
         >

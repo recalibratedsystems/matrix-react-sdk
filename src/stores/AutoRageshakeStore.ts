@@ -74,13 +74,6 @@ export default class AutoRageshakeStore extends AsyncStoreWithClient<IState> {
     }
 
     protected async onReady(): Promise<void> {
-        if (!SettingsStore.getValue("automaticDecryptionErrorReporting")) return;
-
-        if (this.matrixClient) {
-            this.matrixClient.on(MatrixEventEvent.Decrypted, this.onDecryptionAttempt);
-            this.matrixClient.on(ClientEvent.ToDeviceEvent, this.onDeviceMessage);
-            this.matrixClient.on(ClientEvent.Sync, this.onSyncStateChange);
-        }
     }
 
     protected async onNotReady(): Promise<void> {

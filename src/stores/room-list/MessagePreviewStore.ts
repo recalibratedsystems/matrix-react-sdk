@@ -27,9 +27,6 @@ import defaultDispatcher from "../../dispatcher/dispatcher";
 import { MessageEventPreview } from "./previews/MessageEventPreview";
 import { PollStartEventPreview } from "./previews/PollStartEventPreview";
 import { TagID } from "./models";
-import { LegacyCallInviteEventPreview } from "./previews/LegacyCallInviteEventPreview";
-import { LegacyCallAnswerEventPreview } from "./previews/LegacyCallAnswerEventPreview";
-import { LegacyCallHangupEvent } from "./previews/LegacyCallHangupEvent";
 import { StickerEventPreview } from "./previews/StickerEventPreview";
 import { ReactionEventPreview } from "./previews/ReactionEventPreview";
 import { UPDATE_EVENT } from "../AsyncStore";
@@ -49,18 +46,6 @@ const PREVIEWS: Record<
     "m.room.message": {
         isState: false,
         previewer: new MessageEventPreview(),
-    },
-    "m.call.invite": {
-        isState: false,
-        previewer: new LegacyCallInviteEventPreview(),
-    },
-    "m.call.answer": {
-        isState: false,
-        previewer: new LegacyCallAnswerEventPreview(),
-    },
-    "m.call.hangup": {
-        isState: false,
-        previewer: new LegacyCallHangupEvent(),
     },
     "m.sticker": {
         isState: false,

@@ -79,7 +79,6 @@ export default class UserSettingsDialog extends React.Component<IProps, IState> 
                 _td("General"),
                 "mx_UserSettingsDialog_settingsIcon",
                 <GeneralUserSettingsTab closeSettingsFn={this.props.onFinished} />,
-                "UserSettingsGeneral",
             ),
         );
         tabs.push(
@@ -88,7 +87,6 @@ export default class UserSettingsDialog extends React.Component<IProps, IState> 
                 _td("Appearance"),
                 "mx_UserSettingsDialog_appearanceIcon",
                 <AppearanceUserSettingsTab />,
-                "UserSettingsAppearance",
             ),
         );
         tabs.push(
@@ -97,7 +95,6 @@ export default class UserSettingsDialog extends React.Component<IProps, IState> 
                 _td("Notifications"),
                 "mx_UserSettingsDialog_bellIcon",
                 <NotificationUserSettingsTab />,
-                "UserSettingsNotifications",
             ),
         );
         tabs.push(
@@ -106,7 +103,6 @@ export default class UserSettingsDialog extends React.Component<IProps, IState> 
                 _td("Preferences"),
                 "mx_UserSettingsDialog_preferencesIcon",
                 <PreferencesUserSettingsTab closeSettingsFn={this.props.onFinished} />,
-                "UserSettingsPreferences",
             ),
         );
         tabs.push(
@@ -115,7 +111,6 @@ export default class UserSettingsDialog extends React.Component<IProps, IState> 
                 _td("Keyboard"),
                 "mx_UserSettingsDialog_keyboardIcon",
                 <KeyboardUserSettingsTab />,
-                "UserSettingsKeyboard",
             ),
         );
         tabs.push(
@@ -124,7 +119,6 @@ export default class UserSettingsDialog extends React.Component<IProps, IState> 
                 _td("Sidebar"),
                 "mx_UserSettingsDialog_sidebarIcon",
                 <SidebarUserSettingsTab />,
-                "UserSettingsSidebar",
             ),
         );
 
@@ -134,7 +128,6 @@ export default class UserSettingsDialog extends React.Component<IProps, IState> 
                 _td("Security & Privacy"),
                 "mx_UserSettingsDialog_securityIcon",
                 <SecurityUserSettingsTab closeSettingsFn={this.props.onFinished} />,
-                "UserSettingsSecurityPrivacy",
             ),
         );
         tabs.push(
@@ -143,8 +136,6 @@ export default class UserSettingsDialog extends React.Component<IProps, IState> 
                 _td("Sessions"),
                 "mx_UserSettingsDialog_sessionsIcon",
                 <SessionManagerTab />,
-                // don't track with posthog while under construction
-                undefined,
             ),
         );
         // Show the Labs tab if enabled or if there are any active betas
@@ -158,7 +149,6 @@ export default class UserSettingsDialog extends React.Component<IProps, IState> 
                     _td("Labs"),
                     "mx_UserSettingsDialog_labsIcon",
                     <LabsUserSettingsTab />,
-                    "UserSettingsLabs",
                 ),
             );
         }
@@ -169,7 +159,6 @@ export default class UserSettingsDialog extends React.Component<IProps, IState> 
                     _td("Ignored users"),
                     "mx_UserSettingsDialog_mjolnirIcon",
                     <MjolnirUserSettingsTab />,
-                    "UserSettingMjolnir",
                 ),
             );
         }
@@ -179,7 +168,6 @@ export default class UserSettingsDialog extends React.Component<IProps, IState> 
                 _td("Help & About"),
                 "mx_UserSettingsDialog_helpIcon",
                 <HelpUserSettingsTab closeSettingsFn={() => this.props.onFinished()} />,
-                "UserSettingsHelpAbout",
             ),
         );
 
@@ -198,7 +186,6 @@ export default class UserSettingsDialog extends React.Component<IProps, IState> 
                     <TabbedView
                         tabs={this.getTabs()}
                         initialTabId={this.props.initialTabId}
-                        screenName="UserSettings"
                     />
                 </div>
             </BaseDialog>

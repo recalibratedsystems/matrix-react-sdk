@@ -102,9 +102,7 @@ export class StopGapWidgetDriver extends WidgetDriver {
         ]);
 
         // Grant the permissions that are specific to given widget types
-        if (WidgetType.JITSI.matches(this.forWidget.type) && forWidgetKind === WidgetKind.Room) {
-            this.allowedCapabilities.add(MatrixCapabilities.AlwaysOnScreen);
-        } else if (WidgetType.STICKERPICKER.matches(this.forWidget.type) && forWidgetKind === WidgetKind.Account) {
+        if (WidgetType.STICKERPICKER.matches(this.forWidget.type) && forWidgetKind === WidgetKind.Account) {
             const stickerSendingCap = WidgetEventCapability.forRoomEvent(EventDirection.Send, EventType.Sticker).raw;
             this.allowedCapabilities.add(MatrixCapabilities.StickerSending); // legacy as far as MSC2762 is concerned
             this.allowedCapabilities.add(stickerSendingCap);

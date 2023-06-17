@@ -21,7 +21,6 @@ import { Action } from "../../../dispatcher/actions";
 import defaultDispatcher from "../../../dispatcher/dispatcher";
 import { useSettingValue } from "../../../hooks/useSettings";
 import { _t } from "../../../languageHandler";
-import PosthogTrackers from "../../../PosthogTrackers";
 import { UseCase } from "../../../settings/enums/UseCase";
 import { SettingLevel } from "../../../settings/SettingLevel";
 import SettingsStore from "../../../settings/SettingsStore";
@@ -50,7 +49,6 @@ function UserOnboardingButtonInternal({ selected, minimized }: Props): JSX.Eleme
         ev.preventDefault();
         ev.stopPropagation();
 
-        PosthogTrackers.trackInteraction("WebRoomListUserOnboardingIgnoreButton", ev);
         SettingsStore.setValue("FTUE.userOnboardingButton", null, SettingLevel.ACCOUNT, false);
     }, []);
 
@@ -58,7 +56,6 @@ function UserOnboardingButtonInternal({ selected, minimized }: Props): JSX.Eleme
         ev.preventDefault();
         ev.stopPropagation();
 
-        PosthogTrackers.trackInteraction("WebRoomListUserOnboardingButton", ev);
         defaultDispatcher.fire(Action.ViewHomePage);
     }, []);
 

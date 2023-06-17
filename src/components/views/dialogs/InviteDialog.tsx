@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import React, { createRef, ReactNode, SyntheticEvent } from "react";
+import React, { createRef, ReactNode } from "react";
 import classNames from "classnames";
 import { RoomMember } from "matrix-js-sdk/src/models/room-member";
 import { Room } from "matrix-js-sdk/src/models/room";
@@ -25,7 +25,7 @@ import { Icon as InfoIcon } from "../../../../res/img/element-icons/info.svg";
 import { Icon as EmailPillAvatarIcon } from "../../../../res/img/icon-email-pill-avatar.svg";
 import { _t, _td } from "../../../languageHandler";
 import { MatrixClientPeg } from "../../../MatrixClientPeg";
-import { makeRoomPermalink, makeUserPermalink } from "../../../utils/permalinks/Permalinks";
+import { makeUserPermalink } from "../../../utils/permalinks/Permalinks";
 import DMRoomMap from "../../../utils/DMRoomMap";
 import * as Email from "../../../email";
 import { getDefaultIdentityServerUrl, setToDefaultIdentityServer } from "../../../utils/IdentityServerUtils";
@@ -44,13 +44,11 @@ import BaseAvatar from "../avatars/BaseAvatar";
 import { SearchResultAvatar } from "../avatars/SearchResultAvatar";
 import AccessibleButton, { ButtonEvent } from "../elements/AccessibleButton";
 import { selectText } from "../../../utils/strings";
-import Field from "../elements/Field";
 import QuestionDialog from "./QuestionDialog";
 import Spinner from "../elements/Spinner";
 import BaseDialog from "./BaseDialog";
 import UserIdentifierCustomisations from "../../../customisations/UserIdentifier";
 import CopyableText from "../elements/CopyableText";
-import { ScreenName } from "../../../PosthogTrackers";
 import { KeyBindingAction } from "../../../accessibility/KeyboardShortcuts";
 import { getKeyBindingsManager } from "../../../KeyBindingsManager";
 import {
@@ -338,7 +336,6 @@ export default class InviteDialog extends React.PureComponent<Props, IInviteDial
 
     private debounceTimer: number | null = null; // actually number because we're in the browser
     private editorRef = createRef<HTMLInputElement>();
-    private numberEntryFieldRef: React.RefObject<Field> = createRef();
     private unmounted = false;
     private encryptionByDefault = false;
     private profilesStore: UserProfilesStore;
@@ -394,10 +391,6 @@ export default class InviteDialog extends React.PureComponent<Props, IInviteDial
     public componentWillUnmount(): void {
         this.unmounted = true;
     }
-
-    private onConsultFirstChange = (ev: React.ChangeEvent<HTMLInputElement>): void => {
-        this.setState({ consultFirst: ev.target.checked });
-    };
 
     public static buildRecents(excludedTargetIds: Set<string>): Result[] {
         const rooms = DMRoomMap.shared().getUniqueRoomsWithIndividuals(); // map of userId => js-sdk Room
@@ -1116,53 +1109,9 @@ export default class InviteDialog extends React.PureComponent<Props, IInviteDial
         }
     }
 
-    private onDialFormSubmit = (ev: SyntheticEvent): void => {
-        ev.preventDefault();
-    };
-
-    private onDialChange = (ev: React.ChangeEvent<HTMLInputElement>): void => {
-        this.setState({ dialPadValue: ev.currentTarget.value });
-    };
-
-    private onDigitPress = (digit: string, ev: ButtonEvent): void => {
-        this.setState({ dialPadValue: this.state.dialPadValue + digit });
-
-        // Keep the number field focused so that keyboard entry is still available
-        // However, don't focus if this wasn't the result of directly clicking on the button,
-        // i.e someone using keyboard navigation.
-        if (ev.type === "click") {
-            this.numberEntryFieldRef.current?.focus();
-        }
-    };
-
-    private onDeletePress = (ev: ButtonEvent): void => {
-        if (this.state.dialPadValue.length === 0) return;
-        this.setState({ dialPadValue: this.state.dialPadValue.slice(0, -1) });
-
-        // Keep the number field focused so that keyboard entry is still available
-        // However, don't focus if this wasn't the result of directly clicking on the button,
-        // i.e someone using keyboard navigation.
-        if (ev.type === "click") {
-            this.numberEntryFieldRef.current?.focus();
-        }
-    };
-
-    private onTabChange = (tabId: TabId): void => {
-        this.setState({ currentTabId: tabId });
-    };
-
     private async onLinkClick(e: React.MouseEvent<HTMLAnchorElement>): Promise<void> {
         e.preventDefault();
         selectText(e.currentTarget);
-    }
-
-    private get screenName(): ScreenName | undefined {
-        switch (this.props.kind) {
-            case InviteKind.Dm:
-                return "StartChat";
-            default:
-                return undefined;
-        }
     }
 
     /**
@@ -1292,22 +1241,22 @@ export default class InviteDialog extends React.PureComponent<Props, IInviteDial
                 if (identityServersEnabled) {
                     helpTextUntranslated = _td(
                         "Invite someone using their name, email address, username " +
-                            "(like <userId/>) or <a>share this space</a>.",
+                            "(like <userId/>).",
                     );
                 } else {
                     helpTextUntranslated = _td(
-                        "Invite someone using their name, username " + "(like <userId/>) or <a>share this space</a>.",
+                        "Invite someone using their name, username " + "(like <userId/>).",
                     );
                 }
             } else {
                 if (identityServersEnabled) {
                     helpTextUntranslated = _td(
                         "Invite someone using their name, email address, username " +
-                            "(like <userId/>) or <a>share this room</a>.",
+                            "(like <userId/>).",
                     );
                 } else {
                     helpTextUntranslated = _td(
-                        "Invite someone using their name, username " + "(like <userId/>) or <a>share this room</a>.",
+                        "Invite someone using their name, username " + "(like <userId/>).",
                     );
                 }
             }
@@ -1324,11 +1273,6 @@ export default class InviteDialog extends React.PureComponent<Props, IInviteDial
                             target="_blank"
                         >
                             {userId}
-                        </a>
-                    ),
-                    a: (sub) => (
-                        <a href={makeRoomPermalink(cli, roomId)} rel="noreferrer noopener" target="_blank">
-                            {sub}
                         </a>
                     ),
                 },
@@ -1420,7 +1364,6 @@ export default class InviteDialog extends React.PureComponent<Props, IInviteDial
                 hasCancel={true}
                 onFinished={this.props.onFinished}
                 title={title}
-                screenName={this.screenName}
             >
                 <div className="mx_InviteDialog_content">{dialogContent}</div>
             </BaseDialog>

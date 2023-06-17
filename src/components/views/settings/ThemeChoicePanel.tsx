@@ -29,7 +29,6 @@ import StyledCheckbox from "../elements/StyledCheckbox";
 import Field from "../elements/Field";
 import StyledRadioGroup from "../elements/StyledRadioGroup";
 import { SettingLevel } from "../../../settings/SettingLevel";
-import PosthogTrackers from "../../../PosthogTrackers";
 import SettingsSubsection from "./shared/SettingsSubsection";
 
 interface IProps {}
@@ -101,8 +100,6 @@ export default class ThemeChoicePanel extends React.Component<IProps, IState> {
 
     private onThemeChange = (newTheme: string): void => {
         if (this.state.theme === newTheme) return;
-
-        PosthogTrackers.trackInteraction("WebSettingsAppearanceTabThemeSelector");
 
         // doing getValue in the .catch will still return the value we failed to set,
         // so remember what the value was before we tried to set it so we can revert

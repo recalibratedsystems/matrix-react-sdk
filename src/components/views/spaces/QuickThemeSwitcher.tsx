@@ -25,7 +25,6 @@ import SettingsStore from "../../../settings/SettingsStore";
 import { SettingLevel } from "../../../settings/SettingLevel";
 import dis from "../../../dispatcher/dispatcher";
 import { RecheckThemePayload } from "../../../dispatcher/payloads/RecheckThemePayload";
-import PosthogTrackers from "../../../PosthogTrackers";
 import { NonEmptyArray } from "../../../@types/common";
 
 type Props = {
@@ -53,8 +52,6 @@ const QuickThemeSwitcher: React.FC<Props> = ({ requestClose }) => {
     const selectedTheme = useSystemTheme ? MATCH_SYSTEM_THEME_ID : theme;
 
     const onOptionChange = async (newTheme: string): Promise<void> => {
-        PosthogTrackers.trackInteraction("WebQuickSettingsThemeDropdown");
-
         try {
             if (newTheme === MATCH_SYSTEM_THEME_ID) {
                 await SettingsStore.setValue("use_system_theme", null, SettingLevel.DEVICE, true);

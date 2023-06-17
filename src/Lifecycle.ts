@@ -46,7 +46,6 @@ import { Mjolnir } from "./mjolnir/Mjolnir";
 import DeviceListener from "./DeviceListener";
 import { SSO_HOMESERVER_URL_KEY, SSO_ID_SERVER_URL_KEY, SSO_IDP_ID_KEY } from "./BasePlatform";
 import ThreepidInviteStore from "./stores/ThreepidInviteStore";
-import { PosthogAnalytics } from "./PosthogAnalytics";
 import LifecycleCustomisations from "./customisations/Lifecycle";
 import ErrorDialog from "./components/views/dialogs/ErrorDialog";
 import { _t } from "./languageHandler";
@@ -54,7 +53,6 @@ import LazyLoadingResyncDialog from "./components/views/dialogs/LazyLoadingResyn
 import LazyLoadingDisabledDialog from "./components/views/dialogs/LazyLoadingDisabledDialog";
 import SessionRestoreErrorDialog from "./components/views/dialogs/SessionRestoreErrorDialog";
 import StorageEvictedDialog from "./components/views/dialogs/StorageEvictedDialog";
-import { setSentryUser } from "./sentry";
 import SdkConfig from "./SdkConfig";
 import { DialogOpener } from "./utils/DialogOpener";
 import { Action } from "./dispatcher/actions";
@@ -603,12 +601,6 @@ async function doSetLoggedIn(credentials: IMatrixClientCreds, clearStorageEnable
     MatrixClientPeg.replaceUsingCreds(credentials);
     const client = MatrixClientPeg.get();
 
-    setSentryUser(credentials.userId);
-
-    if (PosthogAnalytics.instance.isEnabled()) {
-        PosthogAnalytics.instance.startListeningToSettingsChanges(client);
-    }
-
     if (credentials.freshLogin && SettingsStore.getValue("feature_dehydration")) {
         // If we just logged in, try to rehydrate a device instead of using a
         // new device.  If it succeeds, we'll get a new device ID, so make sure
@@ -719,8 +711,6 @@ let _isLoggingOut = false;
  */
 export function logout(): void {
     if (!MatrixClientPeg.get()) return;
-
-    PosthogAnalytics.instance.logout();
 
     if (MatrixClientPeg.get().isGuest()) {
         // logout doesn't work for guest sessions

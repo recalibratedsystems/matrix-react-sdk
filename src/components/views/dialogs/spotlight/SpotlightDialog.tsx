@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { WebSearch as WebSearchEvent } from "@matrix-org/analytics-events/types/typescript/WebSearch";
 import classNames from "classnames";
 import { capitalize, sum } from "lodash";
 import { IHierarchyRoom } from "matrix-js-sdk/src/@types/spaces";
@@ -44,7 +43,6 @@ import { useUserDirectory } from "../../../../hooks/useUserDirectory";
 import { getKeyBindingsManager } from "../../../../KeyBindingsManager";
 import { _t } from "../../../../languageHandler";
 import { MatrixClientPeg } from "../../../../MatrixClientPeg";
-import { PosthogAnalytics } from "../../../../PosthogAnalytics";
 import { getCachedRoomIDForAlias } from "../../../../RoomAliasCache";
 import { showStartChatInviteDialog } from "../../../../RoomInvite";
 import { SettingLevel } from "../../../../settings/SettingLevel";
@@ -214,18 +212,7 @@ export const useWebSearchMetrics = (numResults: number, queryLength: number, via
     useEffect(() => {
         if (!queryLength) return;
 
-        // send metrics after a 1s debounce
-        const timeoutId = window.setTimeout(() => {
-            PosthogAnalytics.instance.trackEvent<WebSearchEvent>({
-                eventName: "WebSearch",
-                viaSpotlight,
-                numResults,
-                queryLength,
-            });
-        }, 1000);
-
         return () => {
-            clearTimeout(timeoutId);
         };
     }, [numResults, queryLength, viaSpotlight]);
 };
@@ -1174,7 +1161,6 @@ const SpotlightDialog: React.FC<IProps> = ({ initialText = "", initialFilter = n
                 onFinished={onFinished}
                 hasCancel={false}
                 onKeyDown={onDialogKeyDown}
-                screenName="UnifiedSearch"
                 aria-label={_t("Search Dialog")}
             >
                 <div className="mx_SpotlightDialog_searchBox mx_textinput">

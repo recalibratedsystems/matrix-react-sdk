@@ -25,7 +25,6 @@ import * as ContentHelpers from "matrix-js-sdk/src/content-helpers";
 import { logger } from "matrix-js-sdk/src/logger";
 import { IContent } from "matrix-js-sdk/src/models/event";
 import { MRoomTopicEventContent } from "matrix-js-sdk/src/@types/topic";
-import { SlashCommand as SlashCommandEvent } from "@matrix-org/analytics-events/types/typescript/SlashCommand";
 import { MatrixClient } from "matrix-js-sdk/src/matrix";
 
 import dis from "./dispatcher/dispatcher";
@@ -60,7 +59,6 @@ import SlashCommandHelpDialog from "./components/views/dialogs/SlashCommandHelpD
 import { shouldShowComponent } from "./customisations/helpers/UIComponents";
 import { TimelineRenderingType } from "./contexts/RoomContext";
 import { XOR } from "./@types/common";
-import { PosthogAnalytics } from "./PosthogAnalytics";
 import { ViewRoomPayload } from "./dispatcher/payloads/ViewRoomPayload";
 import { htmlSerializeFromMdIfNeeded } from "./editor/serialize";
 import { leaveRoomBehaviour } from "./utils/leave-behaviour";
@@ -116,7 +114,6 @@ interface ICommandOpts {
     aliases?: string[];
     args?: string;
     description: string;
-    analyticsName?: SlashCommandEvent["command"];
     runFn?: RunFn;
     category: string;
     hideCompletionAfterSpace?: boolean;
@@ -133,7 +130,6 @@ export class Command {
     public readonly category: string;
     public readonly hideCompletionAfterSpace: boolean;
     public readonly renderingTypes?: TimelineRenderingType[];
-    public readonly analyticsName?: SlashCommandEvent["command"];
     private readonly _isEnabled?: (matrixClient: MatrixClient | null) => boolean;
 
     public constructor(opts: ICommandOpts) {
@@ -146,7 +142,6 @@ export class Command {
         this.hideCompletionAfterSpace = opts.hideCompletionAfterSpace || false;
         this._isEnabled = opts.isEnabled;
         this.renderingTypes = opts.renderingTypes;
-        this.analyticsName = opts.analyticsName;
     }
 
     public getCommand(): string {
@@ -171,13 +166,6 @@ export class Command {
                     cause: undefined,
                 }),
             );
-        }
-
-        if (this.analyticsName) {
-            PosthogAnalytics.instance.trackEvent<SlashCommandEvent>({
-                eventName: "SlashCommand",
-                command: this.analyticsName,
-            });
         }
 
         return this.runFn(matrixClient, roomId, args);
@@ -538,7 +526,6 @@ export const Commands = [
         command: "invite",
         args: "<user-id> [<reason>]",
         description: _td("Invites user with given id to current room"),
-        analyticsName: "Invite",
         isEnabled: (cli) => !isCurrentLocalRoom(cli) && shouldShowComponent(UIComponent.InviteUsers),
         runFn: function (cli, roomId, args) {
             if (args) {
@@ -728,7 +715,6 @@ export const Commands = [
         command: "part",
         args: "[<room-address>]",
         description: _td("Leave room"),
-        analyticsName: "Part",
         isEnabled: (cli) => !isCurrentLocalRoom(cli),
         runFn: function (cli, roomId, args) {
             let targetRoomId: string | undefined;
@@ -959,7 +945,7 @@ export const Commands = [
     }),
     new Command({
         command: "addwidget",
-        args: "<url | embed code | Jitsi url>",
+        args: "<url | embed code>",
         description: _td("Adds a custom widget by URL to the room"),
         isEnabled: (cli) =>
             SettingsStore.getValue(UIFeature.Widgets) &&

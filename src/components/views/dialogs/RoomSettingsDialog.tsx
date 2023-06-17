@@ -128,7 +128,6 @@ class RoomSettingsDialog extends React.Component<IProps, IState> {
                 _td("General"),
                 "mx_RoomSettingsDialog_settingsIcon",
                 <GeneralRoomSettingsTab room={this.state.room} />,
-                "RoomSettingsGeneral",
             ),
         );
         tabs.push(
@@ -137,7 +136,6 @@ class RoomSettingsDialog extends React.Component<IProps, IState> {
                 _td("Security & Privacy"),
                 "mx_RoomSettingsDialog_securityIcon",
                 <SecurityRoomSettingsTab room={this.state.room} closeSettingsFn={() => this.props.onFinished(true)} />,
-                "RoomSettingsSecurityPrivacy",
             ),
         );
         tabs.push(
@@ -146,7 +144,6 @@ class RoomSettingsDialog extends React.Component<IProps, IState> {
                 _td("Roles & Permissions"),
                 "mx_RoomSettingsDialog_rolesIcon",
                 <RolesRoomSettingsTab room={this.state.room} />,
-                "RoomSettingsRolesPermissions",
             ),
         );
         tabs.push(
@@ -160,7 +157,6 @@ class RoomSettingsDialog extends React.Component<IProps, IState> {
                         closeSettingsFn={() => this.props.onFinished(true)}
                     />
                 ),
-                "RoomSettingsNotifications",
             ),
         );
 
@@ -171,7 +167,6 @@ class RoomSettingsDialog extends React.Component<IProps, IState> {
                     _td("Bridges"),
                     "mx_RoomSettingsDialog_bridgesIcon",
                     <BridgeSettingsTab room={this.state.room} />,
-                    "RoomSettingsBridges",
                 ),
             );
         }
@@ -197,7 +192,6 @@ class RoomSettingsDialog extends React.Component<IProps, IState> {
                             closeSettingsFn={() => this.props.onFinished(true)}
                         />
                     ),
-                    "RoomSettingsAdvanced",
                 ),
             );
         }
@@ -218,7 +212,6 @@ class RoomSettingsDialog extends React.Component<IProps, IState> {
                     <TabbedView
                         tabs={this.getTabs()}
                         initialTabId={this.props.initialTabId}
-                        screenName="RoomSettings"
                     />
                 </div>
             </BaseDialog>

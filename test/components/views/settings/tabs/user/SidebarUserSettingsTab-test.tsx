@@ -18,7 +18,6 @@ import React from "react";
 import { fireEvent, render, screen } from "@testing-library/react";
 
 import SidebarUserSettingsTab from "../../../../../../src/components/views/settings/tabs/user/SidebarUserSettingsTab";
-import PosthogTrackers from "../../../../../../src/PosthogTrackers";
 import SettingsStore from "../../../../../../src/settings/SettingsStore";
 import { MetaSpace } from "../../../../../../src/stores/spaces";
 import { SettingLevel } from "../../../../../../src/settings/SettingLevel";
@@ -32,7 +31,6 @@ jest.mock("matrix-js-sdk/src/randomstring", () => ({
 
 describe("<SidebarUserSettingsTab />", () => {
     beforeEach(() => {
-        jest.spyOn(PosthogTrackers, "trackInteraction").mockClear();
         jest.spyOn(SettingsStore, "getValue").mockRestore();
         jest.spyOn(SettingsStore, "setValue").mockReset();
     });
@@ -60,13 +58,6 @@ describe("<SidebarUserSettingsTab />", () => {
 
         await flushPromises();
         expect(SettingsStore.setValue).toHaveBeenCalledWith("Spaces.allRoomsInHome", null, SettingLevel.ACCOUNT, true);
-
-        expect(PosthogTrackers.trackInteraction).toHaveBeenCalledWith(
-            "WebSettingsSidebarTabSpacesCheckbox",
-            // synthetic event from checkbox
-            expect.objectContaining({ type: "change" }),
-            1,
-        );
     });
 
     it("disables all rooms in home setting when home space is disabled", () => {

@@ -20,7 +20,6 @@ import { EventStatus, IContent, MatrixEvent } from "matrix-js-sdk/src/models/eve
 import { MsgType } from "matrix-js-sdk/src/@types/event";
 import { Room } from "matrix-js-sdk/src/models/room";
 import { logger } from "matrix-js-sdk/src/logger";
-import { Composer as ComposerEvent } from "@matrix-org/analytics-events/types/typescript/Composer";
 
 import { _t } from "../../../languageHandler";
 import dis from "../../../dispatcher/dispatcher";
@@ -45,7 +44,6 @@ import RoomContext from "../../../contexts/RoomContext";
 import { ComposerType } from "../../../dispatcher/payloads/ComposerInsertPayload";
 import { getSlashCommand, isSlashCommand, runSlashCommand, shouldSendAnyway } from "../../../editor/commands";
 import { KeyBindingAction } from "../../../accessibility/KeyboardShortcuts";
-import { PosthogAnalytics } from "../../../PosthogAnalytics";
 import { editorRoomKey, editorStateKey } from "../../../Editing";
 import DocumentOffset from "../../../editor/offset";
 import { attachMentions, attachRelation } from "./SendMessageComposer";
@@ -304,13 +302,6 @@ class EditMessageComposer extends React.Component<IEditMessageComposerProps, ISt
         if (this.state.saveDisabled) return;
 
         const editedEvent = this.props.editState.getEvent();
-
-        PosthogAnalytics.instance.trackEvent<ComposerEvent>({
-            eventName: "Composer",
-            isEditing: true,
-            inThread: !!editedEvent?.getThread(),
-            isReply: !!editedEvent.replyEventId,
-        });
 
         // Replace emoticon at the end of the message
         if (SettingsStore.getValue("MessageComposerInput.autoReplaceEmoji") && this.editorRef.current) {

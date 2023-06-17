@@ -20,9 +20,6 @@ import React, { ReactNode } from "react";
 import * as utils from "matrix-js-sdk/src/utils";
 import { MatrixError } from "matrix-js-sdk/src/http-api";
 import { logger } from "matrix-js-sdk/src/logger";
-import { ViewRoom as ViewRoomEvent } from "@matrix-org/analytics-events/types/typescript/ViewRoom";
-import { JoinedRoom as JoinedRoomEvent } from "@matrix-org/analytics-events/types/typescript/JoinedRoom";
-import { JoinRule } from "matrix-js-sdk/src/@types/partials";
 import { Room } from "matrix-js-sdk/src/models/room";
 import { MatrixEvent } from "matrix-js-sdk/src/models/event";
 import { Optional } from "matrix-events-sdk";
@@ -37,8 +34,6 @@ import { Action } from "../dispatcher/actions";
 import { retry } from "../utils/promise";
 import { TimelineRenderingType } from "../contexts/RoomContext";
 import { ViewRoomPayload } from "../dispatcher/payloads/ViewRoomPayload";
-import DMRoomMap from "../utils/DMRoomMap";
-import { isMetaSpace, MetaSpace } from "./spaces";
 import { JoinRoomPayload } from "../dispatcher/payloads/JoinRoomPayload";
 import { JoinRoomReadyPayload } from "../dispatcher/payloads/JoinRoomReadyPayload";
 import { JoinRoomErrorPayload } from "../dispatcher/payloads/JoinRoomErrorPayload";
@@ -251,29 +246,7 @@ export class RoomViewStore extends EventEmitter {
                     this.setState({ shouldPeek: false });
                 }
 
-                awaitRoomDownSync(MatrixClientPeg.safeGet(), payload.roomId).then((room) => {
-                    const numMembers = room.getJoinedMemberCount();
-                    const roomSize =
-                        numMembers > 1000
-                            ? "MoreThanAThousand"
-                            : numMembers > 100
-                            ? "OneHundredAndOneToAThousand"
-                            : numMembers > 10
-                            ? "ElevenToOneHundred"
-                            : numMembers > 2
-                            ? "ThreeToTen"
-                            : numMembers > 1
-                            ? "Two"
-                            : "One";
-
-                    this.stores.posthogAnalytics.trackEvent<JoinedRoomEvent>({
-                        eventName: "JoinedRoom",
-                        trigger: payload.metricsTrigger,
-                        roomSize,
-                        isDM: !!DMRoomMap.shared().getUserIdForRoomId(room.roomId),
-                        isSpace: room.isSpaceRoom(),
-                    });
-                });
+                awaitRoomDownSync(MatrixClientPeg.safeGet(), payload.roomId);
 
                 break;
             }
@@ -306,31 +279,6 @@ export class RoomViewStore extends EventEmitter {
 
     private async viewRoom(payload: ViewRoomPayload): Promise<void> {
         if (payload.room_id) {
-            const room = MatrixClientPeg.safeGet().getRoom(payload.room_id);
-
-            if (payload.metricsTrigger !== null && payload.room_id !== this.state.roomId) {
-                let activeSpace: ViewRoomEvent["activeSpace"];
-                if (this.stores.spaceStore.activeSpace === MetaSpace.Home) {
-                    activeSpace = "Home";
-                } else if (isMetaSpace(this.stores.spaceStore.activeSpace)) {
-                    activeSpace = "Meta";
-                } else {
-                    activeSpace =
-                        this.stores.spaceStore.activeSpaceRoom?.getJoinRule() === JoinRule.Public
-                            ? "Public"
-                            : "Private";
-                }
-
-                this.stores.posthogAnalytics.trackEvent<ViewRoomEvent>({
-                    eventName: "ViewRoom",
-                    trigger: payload.metricsTrigger,
-                    viaKeyboard: payload.metricsViaKeyboard,
-                    isDM: !!DMRoomMap.shared().getUserIdForRoomId(payload.room_id),
-                    isSpace: room?.isSpaceRoom(),
-                    activeSpace,
-                });
-            }
-
             if (SettingsStore.getValue("feature_sliding_sync") && this.state.roomId !== payload.room_id) {
                 if (this.state.subscribingRoomId && this.state.subscribingRoomId !== payload.room_id) {
                     // unsubscribe from this room, but don't await it as we don't care when this gets done.
