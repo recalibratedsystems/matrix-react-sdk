@@ -284,13 +284,6 @@ export const SETTINGS: { [setting: string]: ISetting } = {
         displayName: _td("Show info about bridges in room settings"),
         default: false,
     },
-    "feature_breadcrumbs_v2": {
-        isFeature: true,
-        labsGroup: LabGroup.Rooms,
-        supportedLevels: LEVELS_FEATURE,
-        displayName: _td("Use new room breadcrumbs"),
-        default: false,
-    },
     "feature_right_panel_default_open": {
         isFeature: true,
         labsGroup: LabGroup.Rooms,
@@ -692,10 +685,6 @@ export const SETTINGS: { [setting: string]: ISetting } = {
         ),
         default: false,
     },
-    "FTUE.useCaseSelection": {
-        supportedLevels: LEVELS_ACCOUNT_SETTINGS,
-        default: null,
-    },
     "autocompleteDelay": {
         supportedLevels: LEVELS_DEVICE_ONLY_SETTINGS_WITH_CONFIG,
         default: 200,
@@ -780,12 +769,6 @@ export const SETTINGS: { [setting: string]: ISetting } = {
     "breadcrumbs": {
         supportedLevels: LEVELS_ACCOUNT_SETTINGS,
         displayName: _td("Show shortcuts to recently viewed rooms above the room list"),
-        default: true,
-        controller: new IncompatibleController("feature_breadcrumbs_v2", true),
-    },
-    "FTUE.userOnboardingButton": {
-        supportedLevels: LEVELS_ACCOUNT_SETTINGS,
-        displayName: _td("Show shortcut to welcome checklist above the room list"),
         default: true,
     },
     "showHiddenEventsInTimeline": {

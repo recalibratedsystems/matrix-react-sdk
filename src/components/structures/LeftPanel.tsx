@@ -32,19 +32,16 @@ import { getKeyBindingsManager } from "../../KeyBindingsManager";
 import UIStore from "../../stores/UIStore";
 import { IState as IRovingTabIndexState } from "../../accessibility/RovingTabIndex";
 import RoomListHeader from "../views/rooms/RoomListHeader";
-import RecentlyViewedButton from "../views/rooms/RecentlyViewedButton";
 import { BreadcrumbsStore } from "../../stores/BreadcrumbsStore";
 import RoomListStore, { LISTS_UPDATE_EVENT } from "../../stores/room-list/RoomListStore";
 import { UPDATE_EVENT } from "../../stores/AsyncStore";
 import IndicatorScrollbar from "./IndicatorScrollbar";
 import RoomBreadcrumbs from "../views/rooms/RoomBreadcrumbs";
-import SettingsStore from "../../settings/SettingsStore";
 import { KeyBindingAction } from "../../accessibility/KeyboardShortcuts";
 import { shouldShowComponent } from "../../customisations/helpers/UIComponents";
 import { UIComponent } from "../../settings/UIFeature";
 import { ButtonEvent } from "../views/elements/AccessibleButton";
 import PageType from "../../PageTypes";
-import { UserOnboardingButton } from "../views/user-onboarding/UserOnboardingButton";
 
 interface IProps {
     isMinimized: boolean;
@@ -55,7 +52,6 @@ interface IProps {
 enum BreadcrumbsMode {
     Disabled,
     Legacy,
-    Labs,
 }
 
 interface IState {
@@ -83,8 +79,7 @@ export default class LeftPanel extends React.Component<IProps, IState> {
     }
 
     private static get breadcrumbsMode(): BreadcrumbsMode {
-        if (!BreadcrumbsStore.instance.visible) return BreadcrumbsMode.Disabled;
-        return SettingsStore.getValue("feature_breadcrumbs_v2") ? BreadcrumbsMode.Labs : BreadcrumbsMode.Legacy;
+        return !BreadcrumbsStore.instance.visible ? BreadcrumbsMode.Disabled : BreadcrumbsMode.Legacy;
     }
 
     public componentDidMount(): void {
@@ -325,9 +320,7 @@ export default class LeftPanel extends React.Component<IProps, IState> {
         let dialPadButton: JSX.Element | undefined;
 
         let rightButton: JSX.Element | undefined;
-        if (this.state.showBreadcrumbs === BreadcrumbsMode.Labs) {
-            rightButton = <RecentlyViewedButton />;
-        } else if (this.state.activeSpace === MetaSpace.Home && shouldShowComponent(UIComponent.ExploreRooms)) {
+        if (this.state.activeSpace === MetaSpace.Home && shouldShowComponent(UIComponent.ExploreRooms)) {
             rightButton = (
                 <AccessibleTooltipButton
                     className="mx_LeftPanel_exploreButton"
@@ -380,10 +373,7 @@ export default class LeftPanel extends React.Component<IProps, IState> {
                     {shouldShowComponent(UIComponent.FilterContainer) && this.renderSearchDialExplore()}
                     {this.renderBreadcrumbs()}
                     {!this.props.isMinimized && <RoomListHeader onVisibilityChange={this.refreshStickyHeaders} />}
-                    <UserOnboardingButton
-                        selected={this.props.pageType === PageType.HomePage}
-                        minimized={this.props.isMinimized}
-                    />
+
                     <div className="mx_LeftPanel_roomListWrapper">
                         <div
                             className={roomListClasses}

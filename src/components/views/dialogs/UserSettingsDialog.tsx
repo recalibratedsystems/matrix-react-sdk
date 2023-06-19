@@ -26,10 +26,8 @@ import AppearanceUserSettingsTab from "../settings/tabs/user/AppearanceUserSetti
 import SecurityUserSettingsTab from "../settings/tabs/user/SecurityUserSettingsTab";
 import NotificationUserSettingsTab from "../settings/tabs/user/NotificationUserSettingsTab";
 import PreferencesUserSettingsTab from "../settings/tabs/user/PreferencesUserSettingsTab";
-import HelpUserSettingsTab from "../settings/tabs/user/HelpUserSettingsTab";
 import SdkConfig from "../../../SdkConfig";
 import MjolnirUserSettingsTab from "../settings/tabs/user/MjolnirUserSettingsTab";
-import { UIFeature } from "../../../settings/UIFeature";
 import BaseDialog from "./BaseDialog";
 import SidebarUserSettingsTab from "../settings/tabs/user/SidebarUserSettingsTab";
 import KeyboardUserSettingsTab from "../settings/tabs/user/KeyboardUserSettingsTab";
@@ -162,14 +160,6 @@ export default class UserSettingsDialog extends React.Component<IProps, IState> 
                 ),
             );
         }
-        tabs.push(
-            new Tab(
-                UserTab.Help,
-                _td("Help & About"),
-                "mx_UserSettingsDialog_helpIcon",
-                <HelpUserSettingsTab closeSettingsFn={() => this.props.onFinished()} />,
-            ),
-        );
 
         return tabs as NonEmptyArray<Tab<UserTab>>;
     }

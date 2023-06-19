@@ -63,7 +63,6 @@ import { TimelineRenderingType } from "../../contexts/RoomContext";
 import { KeyBindingAction } from "../../accessibility/KeyboardShortcuts";
 import { SwitchSpacePayload } from "../../dispatcher/payloads/SwitchSpacePayload";
 import LeftPanelLiveShareWarning from "../views/beacon/LeftPanelLiveShareWarning";
-import { UserOnboardingPage } from "../views/user-onboarding/UserOnboardingPage";
 import { monitorSyncedPushRules } from "../../utils/pushRules/monitorSyncedPushRules";
 import { ConfigOptions } from "../../SdkConfig";
 
@@ -622,10 +621,6 @@ class LoggedInView extends React.Component<IProps, IState> {
                         forceTimeline={this.props.forceTimeline}
                     />
                 );
-                break;
-
-            case PageTypes.HomePage:
-                pageElement = <UserOnboardingPage justRegistered={this.props.justRegistered} />;
                 break;
 
             case PageTypes.UserView:

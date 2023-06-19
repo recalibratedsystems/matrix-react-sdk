@@ -1115,37 +1115,11 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
         this.themeWatcher.recheck();
         StorageManager.tryPersistStorage();
 
-        if (MatrixClientPeg.currentUserIsJustRegistered() && SettingsStore.getValue("FTUE.useCaseSelection") === null) {
-            this.setStateForNewView({ view: Views.USE_CASE_SELECTION });
-
-            // Listen to changes in settings and hide the use case screen if appropriate - this is necessary because
-            // account settings can still be changing at this point in app init (due to the initial sync being cached,
-            // then subsequent syncs being received from the server)
-            //
-            // This seems unlikely for something that should happen directly after registration, but if a user does
-            // their initial login on another device/browser than they registered on, we want to avoid asking this
-            // question twice
-            //
-            // initPosthogAnalyticsToast pioneered this technique, we’re just reusing it here.
-            SettingsStore.watchSetting(
-                "FTUE.useCaseSelection",
-                null,
-                (originalSettingName, changedInRoomId, atLevel, newValueAtLevel, newValue) => {
-                    if (newValue !== null && this.state.view === Views.USE_CASE_SELECTION) {
-                        this.onShowPostLoginScreen();
-                    }
-                },
-            );
-        } else {
-            return this.onShowPostLoginScreen();
-        }
+        
+        return this.onShowPostLoginScreen();
     }
 
     private async onShowPostLoginScreen(useCase?: UseCase): Promise<void> {
-        if (useCase) {
-            SettingsStore.setValue("FTUE.useCaseSelection", null, SettingLevel.ACCOUNT, useCase);
-        }
-
         this.setStateForNewView({ view: Views.LOGGED_IN });
         // If a specific screen is set to be shown after login, show that above
         // all else, as it probably means the user clicked on something already.
@@ -1499,7 +1473,7 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
     }
 
     public showScreen(screen: string, params?: { [key: string]: any }): void {
-        const cli = MatrixClientPeg.safeGet();
+        const cli = MatrixClientPeg.get();
         const isLoggedOutOrGuest = !cli || cli.isGuest();
         if (!isLoggedOutOrGuest && AUTH_SCREENS.includes(screen)) {
             // user is logged in and landing on an auth page which will uproot their session, redirect them home instead
@@ -1552,7 +1526,7 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
         } else if (screen === "directory") {
             dis.fire(Action.ViewRoomDirectory);
         } else if (screen === "start_sso" || screen === "start_cas") {
-            let cli = MatrixClientPeg.safeGet();
+            let cli = MatrixClientPeg.get();
             if (!cli) {
                 const { hsUrl, isUrl } = this.getServerProperties().serverConfig;
                 cli = createClient({
@@ -1703,7 +1677,7 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
     }
 
     private onSendEvent(roomId: string, event: MatrixEvent): void {
-        const cli = MatrixClientPeg.safeGet();
+        const cli = MatrixClientPeg.get();
         if (!cli) return;
 
         cli.sendEvent(roomId, event.getType(), event.getContent()).then(() => {
@@ -1713,7 +1687,7 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
 
     private setPageSubtitle(subtitle = ""): void {
         if (this.state.currentRoomId) {
-            const client = MatrixClientPeg.safeGet();
+            const client = MatrixClientPeg.get();
             const room = client?.getRoom(this.state.currentRoomId);
             if (room) {
                 subtitle = `${this.subTitleStatus} | ${room.name} ${subtitle}`;

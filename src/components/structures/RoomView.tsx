@@ -507,7 +507,8 @@ export class RoomView extends React.Component<IRoomProps, IRoomState> {
             return;
         }
 
-        if (!initial && this.state.roomId !== this.context.roomViewStore.getRoomId()) {
+        const roomLoadError = this.context.roomViewStore.getRoomLoadError() ?? undefined;
+        if (!initial && !roomLoadError && this.state.roomId !== this.context.roomViewStore.getRoomId()) {
             // RoomView explicitly does not support changing what room
             // is being viewed: instead it should just be re-mounted when
             // switching rooms. Therefore, if the room ID changes, we
@@ -529,7 +530,7 @@ export class RoomView extends React.Component<IRoomProps, IRoomState> {
             roomId: roomId ?? undefined,
             roomAlias: this.context.roomViewStore.getRoomAlias() ?? undefined,
             roomLoading: this.context.roomViewStore.isRoomLoading(),
-            roomLoadError: this.context.roomViewStore.getRoomLoadError() ?? undefined,
+            roomLoadError,
             joining: this.context.roomViewStore.isJoining(),
             replyToEvent: this.context.roomViewStore.getQuotingEvent() ?? undefined,
             // we should only peek once we have a ready client

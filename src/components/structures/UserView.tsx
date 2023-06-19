@@ -28,7 +28,6 @@ import RightPanel from "./RightPanel";
 import Spinner from "../views/elements/Spinner";
 import ResizeNotifier from "../../utils/ResizeNotifier";
 import { RightPanelPhases } from "../../stores/right-panel/RightPanelStorePhases";
-import { UserOnboardingPage } from "../views/user-onboarding/UserOnboardingPage";
 import MatrixClientContext from "../../contexts/MatrixClientContext";
 
 interface IProps {
@@ -99,7 +98,6 @@ export default class UserView extends React.Component<IProps, IState> {
             );
             return (
                 <MainSplit panel={panel} resizeNotifier={this.props.resizeNotifier}>
-                    <UserOnboardingPage />
                 </MainSplit>
             );
         } else {

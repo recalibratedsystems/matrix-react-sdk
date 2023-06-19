@@ -54,12 +54,6 @@ describe("User Onboarding (new user)", () => {
         cy.stopHomeserver(homeserver);
     });
 
-    it("page is shown and preference exists", () => {
-        cy.get(".mx_UserOnboardingPage").percySnapshotElement("User onboarding page");
-        cy.openUserSettings("Preferences");
-        cy.findByText("Show shortcut to welcome checklist above the room list").should("exist");
-    });
-
     it("app download dialog", () => {
         cy.findByRole("button", { name: "Download apps" }).click();
         cy.get("[role=dialog]").get("#mx_BaseDialog_title").findByText("Download Element").should("exist");

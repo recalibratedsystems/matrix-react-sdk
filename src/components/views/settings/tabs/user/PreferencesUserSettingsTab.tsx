@@ -29,7 +29,6 @@ import { UserTab } from "../../../dialogs/UserTab";
 import { OpenToTabPayload } from "../../../../../dispatcher/payloads/OpenToTabPayload";
 import { Action } from "../../../../../dispatcher/actions";
 import SdkConfig from "../../../../../SdkConfig";
-import { showUserOnboardingPage } from "../../../user-onboarding/UserOnboardingPage";
 import SettingsSubsection from "../../shared/SettingsSubsection";
 import SettingsTab from "../SettingsTab";
 import { SettingsSection } from "../../shared/SettingsSection";
@@ -45,7 +44,7 @@ interface IState {
 }
 
 export default class PreferencesUserSettingsTab extends React.Component<IProps, IState> {
-    private static ROOM_LIST_SETTINGS = ["breadcrumbs", "FTUE.userOnboardingButton"];
+    private static ROOM_LIST_SETTINGS = ["breadcrumbs"];
 
     private static SPACES_SETTINGS = ["Spaces.allRoomsInHome"];
 
@@ -138,12 +137,9 @@ export default class PreferencesUserSettingsTab extends React.Component<IProps, 
     };
 
     public render(): React.ReactNode {
-        const useCase = SettingsStore.getValue<UseCase | null>("FTUE.useCaseSelection");
         const roomListSettings = PreferencesUserSettingsTab.ROOM_LIST_SETTINGS
             // Only show the breadcrumbs setting if breadcrumbs v2 is disabled
-            .filter((it) => it !== "breadcrumbs" || !SettingsStore.getValue("feature_breadcrumbs_v2"))
-            // Only show the user onboarding setting if the user should see the user onboarding page
-            .filter((it) => it !== "FTUE.userOnboardingButton" || showUserOnboardingPage(useCase));
+            .filter((it) => it !== "breadcrumbs")
 
         return (
             <SettingsTab data-testid="mx_PreferencesUserSettingsTab">
