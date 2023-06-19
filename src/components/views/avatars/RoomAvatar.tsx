@@ -69,7 +69,7 @@ export default class RoomAvatar extends React.Component<IProps, IState> {
     }
 
     public componentWillUnmount(): void {
-        MatrixClientPeg.safeGet()?.removeListener(RoomStateEvent.Events, this.onRoomStateEvents);
+        MatrixClientPeg.get()?.removeListener(RoomStateEvent.Events, this.onRoomStateEvents);
     }
 
     public static getDerivedStateFromProps(nextProps: IProps): IState {

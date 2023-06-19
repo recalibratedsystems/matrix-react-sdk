@@ -72,7 +72,7 @@ export default class AuxPanel extends React.Component<IProps, IState> {
 
     public componentWillUnmount(): void {
         if (SettingsStore.getValue("feature_state_counters")) {
-            MatrixClientPeg.safeGet()?.removeListener(RoomStateEvent.Events, this.onRoomStateEvents);
+            MatrixClientPeg.get()?.removeListener(RoomStateEvent.Events, this.onRoomStateEvents);
         }
     }
 

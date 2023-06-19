@@ -570,12 +570,13 @@ export default class AppTile extends React.Component<IProps, IState> {
         // Additional iframe feature permissions
         // (see - https://sites.google.com/a/chromium.org/dev/Home/chromium-security/deprecating-permissions-in-cross-origin-iframes and https://wicg.github.io/feature-policy/)
         const iframeFeatures =
-            "microphone; camera; encrypted-media; autoplay; display-capture; clipboard-write; " + "clipboard-read;";
+            "encrypted-media; autoplay; display-capture; clipboard-write; " + "clipboard-read;";
 
         const appTileBodyClass = classNames({
-            mx_AppTileBody: !this.props.miniMode,
-            mx_AppTileBody_mini: this.props.miniMode,
-            mx_AppTile_loading: this.state.loading,
+            "mx_AppTileBody": true,
+            "mx_AppTileBody--large": !this.props.miniMode,
+            "mx_AppTileBody--mini": this.props.miniMode,
+            "mx_AppTileBody--loading": this.state.loading,
         });
         const appTileBodyStyles: CSSProperties = {};
         if (this.props.pointerEvents) {

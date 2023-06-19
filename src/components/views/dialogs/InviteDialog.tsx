@@ -1226,7 +1226,7 @@ export default class InviteDialog extends React.PureComponent<Props, IInviteDial
             );
         } else if (this.props.kind === InviteKind.Invite) {
             const roomId = this.props.roomId;
-            const room = MatrixClientPeg.safeGet()?.getRoom(roomId);
+            const room = MatrixClientPeg.get()?.getRoom(roomId);
             const isSpace = room?.isSpaceRoom();
             title = isSpace
                 ? _t("Invite to %(spaceName)s", {

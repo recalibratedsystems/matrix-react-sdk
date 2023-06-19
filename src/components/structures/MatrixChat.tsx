@@ -465,23 +465,6 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
         // to try logging out.
     }
 
-    private startPageChangeTimer(): void {
-        PerformanceMonitor.instance.start(PerformanceEntryNames.PAGE_CHANGE);
-    }
-
-    private stopPageChangeTimer(): number | null {
-        const perfMonitor = PerformanceMonitor.instance;
-
-        perfMonitor.stop(PerformanceEntryNames.PAGE_CHANGE);
-
-        const entries = perfMonitor.getEntries({
-            name: PerformanceEntryNames.PAGE_CHANGE,
-        });
-        const measurement = entries.pop();
-
-        return measurement ? measurement.duration : null;
-    }
-
     private setStateForNewView(state: Partial<IState>): void {
         if (state.view === undefined) {
             throw new Error("setStateForNewView with no view!");
@@ -495,7 +478,7 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
 
     private onAction = (payload: ActionPayload): void => {
         // Start the onboarding process for certain actions
-        if (MatrixClientPeg.safeGet()?.isGuest() && ONBOARDING_FLOW_STARTERS.includes(payload.action)) {
+        if (MatrixClientPeg.get()?.isGuest() && ONBOARDING_FLOW_STARTERS.includes(payload.action)) {
             // This will cause `payload` to be dispatched later, once a
             // sync has reached the "prepared" state. Setting a matrix ID
             // will cause a full login and sync and finally the deferred
