@@ -91,7 +91,7 @@ export default class BaseDialog extends React.Component<IProps> {
     public constructor(props: IProps) {
         super(props);
 
-        this.matrixClient = MatrixClientPeg.safeGet();
+        this.matrixClient = MatrixClientPeg.get();
     }
 
     private onKeyDown = (e: KeyboardEvent | React.KeyboardEvent): void => {
