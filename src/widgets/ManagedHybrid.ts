@@ -24,7 +24,7 @@ export function isManagedHybridWidgetEnabled(roomId: string): boolean {
 }
 
 export async function addManagedHybridWidget(roomId: string): Promise<void> {
-    const cli = MatrixClientPeg.get();
+    const cli = MatrixClientPeg.safeGet();
     const room = cli.getRoom(roomId);
     if (!room) {
         return;

@@ -165,12 +165,12 @@ export default class VerificationRequestToast extends React.PureComponent<IProps
                 });
             }
         } else {
+            const client = MatrixClientPeg.safeGet();
             const userId = request.otherUserId;
             const roomId = request.roomId;
-            description = roomId ? userLabelForEventRoom(MatrixClientPeg.safeGet(), userId, roomId) : userId;
+            description = roomId ? userLabelForEventRoom(client, userId, roomId) : userId;
             // for legacy to_device verification requests
             if (description === userId) {
-                const client = MatrixClientPeg.safeGet();
                 const user = client.getUser(userId);
                 if (user && user.displayName) {
                     description = _t("%(name)s (%(userId)s)", { name: user.displayName, userId });

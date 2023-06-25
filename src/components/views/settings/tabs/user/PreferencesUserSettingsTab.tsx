@@ -137,9 +137,7 @@ export default class PreferencesUserSettingsTab extends React.Component<IProps, 
     };
 
     public render(): React.ReactNode {
-        const roomListSettings = PreferencesUserSettingsTab.ROOM_LIST_SETTINGS
-            // Only show the breadcrumbs setting if breadcrumbs v2 is disabled
-            .filter((it) => it !== "breadcrumbs")
+        const roomListSettings = PreferencesUserSettingsTab.ROOM_LIST_SETTINGS;
 
         return (
             <SettingsTab data-testid="mx_PreferencesUserSettingsTab">

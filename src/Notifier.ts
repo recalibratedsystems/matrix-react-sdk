@@ -71,7 +71,7 @@ const msgTypeHandlers: Record<string, (event: MatrixEvent) => string | null> = {
         return TextForEvent.textForLocationEvent(event)();
     },
     [MsgType.Audio]: (event: MatrixEvent): string | null => {
-        return TextForEvent.textForEvent(event, MatrixClientPeg.get());
+        return TextForEvent.textForEvent(event, MatrixClientPeg.safeGet());
     },
 };
 
@@ -91,13 +91,13 @@ class NotifierClass {
         if (msgType && msgTypeHandlers.hasOwnProperty(msgType)) {
             return msgTypeHandlers[msgType](ev);
         }
-        return TextForEvent.textForEvent(ev, MatrixClientPeg.get());
+        return TextForEvent.textForEvent(ev, MatrixClientPeg.safeGet());
     }
 
     // XXX: exported for tests
     public displayPopupNotification(ev: MatrixEvent, room: Room): void {
         const plaf = PlatformPeg.get();
-        const cli = MatrixClientPeg.get();
+        const cli = MatrixClientPeg.safeGet();
         if (!plaf) {
             return;
         }
@@ -195,7 +195,7 @@ class NotifierClass {
 
     // XXX: Exported for tests
     public async playAudioNotification(ev: MatrixEvent, room: Room): Promise<void> {
-        const cli = MatrixClientPeg.get();
+        const cli = MatrixClientPeg.safeGet();
         if (localNotificationsAreSilenced(cli)) {
             return;
         }
@@ -226,20 +226,21 @@ class NotifierClass {
     }
 
     public start(): void {
-        MatrixClientPeg.get().on(RoomEvent.Timeline, this.onEvent);
-        MatrixClientPeg.get().on(RoomEvent.Receipt, this.onRoomReceipt);
-        MatrixClientPeg.get().on(MatrixEventEvent.Decrypted, this.onEventDecrypted);
-        MatrixClientPeg.get().on(ClientEvent.Sync, this.onSyncStateChange);
+        const cli = MatrixClientPeg.safeGet();
+        cli.on(RoomEvent.Timeline, this.onEvent);
+        cli.on(RoomEvent.Receipt, this.onRoomReceipt);
+        cli.on(MatrixEventEvent.Decrypted, this.onEventDecrypted);
+        cli.on(ClientEvent.Sync, this.onSyncStateChange);
         this.toolbarHidden = false;
         this.isSyncing = false;
     }
 
     public stop(): void {
         if (MatrixClientPeg.get()) {
-            MatrixClientPeg.get().removeListener(RoomEvent.Timeline, this.onEvent);
-            MatrixClientPeg.get().removeListener(RoomEvent.Receipt, this.onRoomReceipt);
-            MatrixClientPeg.get().removeListener(MatrixEventEvent.Decrypted, this.onEventDecrypted);
-            MatrixClientPeg.get().removeListener(ClientEvent.Sync, this.onSyncStateChange);
+            MatrixClientPeg.get()!.removeListener(RoomEvent.Timeline, this.onEvent);
+            MatrixClientPeg.get()!.removeListener(RoomEvent.Receipt, this.onRoomReceipt);
+            MatrixClientPeg.get()!.removeListener(MatrixEventEvent.Decrypted, this.onEventDecrypted);
+            MatrixClientPeg.get()!.removeListener(ClientEvent.Sync, this.onSyncStateChange);
         }
         this.isSyncing = false;
     }
@@ -370,7 +371,7 @@ class NotifierClass {
 
         // wait for first non-cached sync to complete
         if (![SyncState.Stopped, SyncState.Error].includes(state) && !data?.fromCache) {
-            createLocalNotificationSettingsIfNeeded(MatrixClientPeg.get());
+            createLocalNotificationSettingsIfNeeded(MatrixClientPeg.safeGet());
         }
     };
 
@@ -383,9 +384,9 @@ class NotifierClass {
     ): void => {
         if (!data.liveEvent) return; // only notify for new things, not old.
         if (!this.isSyncing) return; // don't alert for any messages initially
-        if (ev.getSender() === MatrixClientPeg.get().getUserId()) return;
+        if (ev.getSender() === MatrixClientPeg.safeGet().getUserId()) return;
 
-        MatrixClientPeg.get().decryptEventIfNeeded(ev);
+        MatrixClientPeg.safeGet().decryptEventIfNeeded(ev);
 
         // If it's an encrypted event and the type is still 'm.room.encrypted',
         // it hasn't yet been decrypted, so wait until it is.
@@ -435,14 +436,14 @@ class NotifierClass {
     public evaluateEvent(ev: MatrixEvent): void {
         // Mute notifications for broadcast info events
         let roomId = ev.getRoomId()!;
-        const room = MatrixClientPeg.get().getRoom(roomId);
+        const room = MatrixClientPeg.safeGet().getRoom(roomId);
         if (!room) {
             // e.g we are in the process of joining a room.
             // Seen in the cypress lazy-loading test.
             return;
         }
 
-        const actions = MatrixClientPeg.get().getPushActionsForEvent(ev);
+        const actions = MatrixClientPeg.safeGet().getPushActionsForEvent(ev);
 
         if (actions?.notify) {
             this.performCustomEventHandling(ev);
