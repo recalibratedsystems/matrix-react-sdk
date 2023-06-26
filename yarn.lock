@@ -6973,11 +6973,6 @@ optionator@^0.9.1:
     type-check "^0.4.0"
     word-wrap "^1.2.3"
 
-opus-recorder@^8.0.3:
-  version "8.0.5"
-  resolved "https://registry.yarnpkg.com/opus-recorder/-/opus-recorder-8.0.5.tgz#06d3e32e15da57ebc3f57e41b93033475fcb4e3e"
-  integrity sha512-tBRXc9Btds7i3bVfA7d5rekAlyOcfsivt5vSIXHxRV1Oa+s6iXFW8omZ0Lm3ABWotVcEyKt96iIIUcgbV07YOw==
-
 ospath@^1.2.2:
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/ospath/-/ospath-1.2.2.tgz#1276639774a3f8ef2572f7fe4280e0ea4550c07b"

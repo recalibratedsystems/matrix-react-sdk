@@ -34,7 +34,6 @@ import WidgetStore from "../stores/WidgetStore";
 import UserActivity from "../UserActivity";
 import { ModalWidgetStore } from "../stores/ModalWidgetStore";
 import { WidgetLayoutStore } from "../stores/widgets/WidgetLayoutStore";
-import VoipUserMapper from "../VoipUserMapper";
 import { SpaceStoreClass } from "../stores/spaces/SpaceStore";
 import TypingStore from "../stores/TypingStore";
 import { EventIndexPeg } from "../indexing/EventIndexPeg";
@@ -88,7 +87,6 @@ declare global {
         mxWidgetLayoutStore: WidgetLayoutStore;
         mxUserActivity: UserActivity;
         mxModalWidgetStore: ModalWidgetStore;
-        mxVoipUserMapper: VoipUserMapper;
         mxSpaceStore: SpaceStoreClass;
         mxTypingStore: TypingStore;
         mxEventIndexPeg: EventIndexPeg;
