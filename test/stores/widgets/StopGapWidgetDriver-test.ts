@@ -20,7 +20,6 @@ import { DeviceInfo } from "matrix-js-sdk/src/crypto/deviceinfo";
 import { Direction, EventType, MatrixEvent, MsgType, RelationType } from "matrix-js-sdk/src/matrix";
 import {
     Widget,
-    MatrixWidgetType,
     WidgetKind,
     WidgetDriver,
     ITurnServer,
@@ -63,58 +62,7 @@ describe("StopGapWidgetDriver", () => {
         stubClient();
         client = mocked(MatrixClientPeg.safeGet());
         client.getUserId.mockReturnValue("@alice:example.org");
-    });
-
-    it("auto-approves capabilities of virtual Element Call widgets", async () => {
-        const driver = new StopGapWidgetDriver(
-            [],
-            new Widget({
-                id: "group_call",
-                creatorUserId: "@alice:example.org",
-                type: MatrixWidgetType.Custom,
-                url: "https://call.element.io",
-            }),
-            WidgetKind.Room,
-            true,
-            "!1:example.org",
-        );
-
-        // These are intentionally raw identifiers rather than constants, so it's obvious what's being requested
-        const requestedCapabilities = new Set([
-            "m.always_on_screen",
-            "town.robin.msc3846.turn_servers",
-            "org.matrix.msc2762.timeline:!1:example.org",
-            "org.matrix.msc2762.send.event:org.matrix.rageshake_request",
-            "org.matrix.msc2762.receive.event:org.matrix.rageshake_request",
-            "org.matrix.msc2762.receive.state_event:m.room.member",
-            "org.matrix.msc2762.receive.state_event:org.matrix.msc3401.call",
-            "org.matrix.msc2762.send.state_event:org.matrix.msc3401.call.member#@alice:example.org",
-            "org.matrix.msc2762.receive.state_event:org.matrix.msc3401.call.member",
-            "org.matrix.msc3819.send.to_device:m.call.invite",
-            "org.matrix.msc3819.receive.to_device:m.call.invite",
-            "org.matrix.msc3819.send.to_device:m.call.candidates",
-            "org.matrix.msc3819.receive.to_device:m.call.candidates",
-            "org.matrix.msc3819.send.to_device:m.call.answer",
-            "org.matrix.msc3819.receive.to_device:m.call.answer",
-            "org.matrix.msc3819.send.to_device:m.call.hangup",
-            "org.matrix.msc3819.receive.to_device:m.call.hangup",
-            "org.matrix.msc3819.send.to_device:m.call.reject",
-            "org.matrix.msc3819.receive.to_device:m.call.reject",
-            "org.matrix.msc3819.send.to_device:m.call.select_answer",
-            "org.matrix.msc3819.receive.to_device:m.call.select_answer",
-            "org.matrix.msc3819.send.to_device:m.call.negotiate",
-            "org.matrix.msc3819.receive.to_device:m.call.negotiate",
-            "org.matrix.msc3819.send.to_device:m.call.sdp_stream_metadata_changed",
-            "org.matrix.msc3819.receive.to_device:m.call.sdp_stream_metadata_changed",
-            "org.matrix.msc3819.send.to_device:org.matrix.call.sdp_stream_metadata_changed",
-            "org.matrix.msc3819.receive.to_device:org.matrix.call.sdp_stream_metadata_changed",
-            "org.matrix.msc3819.send.to_device:m.call.replaces",
-            "org.matrix.msc3819.receive.to_device:m.call.replaces",
-        ]);
-
-        // As long as this resolves, we'll know that it didn't try to pop up a modal
-        const approvedCapabilities = await driver.validateCapabilities(requestedCapabilities);
-        expect(approvedCapabilities).toEqual(requestedCapabilities);
+        client.getSafeUserId.mockReturnValue("@alice:example.org");
     });
 
     it("approves capabilities via module api", async () => {

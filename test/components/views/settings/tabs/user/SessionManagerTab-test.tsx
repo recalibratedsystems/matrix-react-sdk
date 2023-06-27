@@ -87,6 +87,7 @@ describe("<SessionManagerTab />", () => {
     } as unknown as VerificationRequest;
 
     const mockCrypto = mocked({
+        getDeviceVerificationStatus: jest.fn(),
         requestDeviceVerification: jest.fn().mockResolvedValue(mockVerificationRequest),
     } as unknown as CryptoApi);
 

@@ -99,8 +99,6 @@ describe("SlashCommands", () => {
         ["addwidget"],
         ["discardsession"],
         ["whois"],
-        ["holdcall"],
-        ["unholdcall"],
         ["converttodm"],
         ["converttoroom"],
     ])("/%s", (commandName: string) => {

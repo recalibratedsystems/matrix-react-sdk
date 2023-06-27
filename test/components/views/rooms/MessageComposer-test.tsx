@@ -38,7 +38,6 @@ import { IRoomState } from "../../../../src/components/structures/RoomView";
 import ResizeNotifier from "../../../../src/utils/ResizeNotifier";
 import { RoomPermalinkCreator } from "../../../../src/utils/permalinks/Permalinks";
 import { LocalRoom } from "../../../../src/models/LocalRoom";
-import { Features } from "../../../../src/settings/Settings";
 import SettingsStore from "../../../../src/settings/SettingsStore";
 import { SettingLevel } from "../../../../src/settings/SettingLevel";
 import dis from "../../../../src/dispatcher/dispatcher";
@@ -46,7 +45,6 @@ import { E2EStatus } from "../../../../src/utils/ShieldUtils";
 import { addTextToComposerRTL } from "../../../test-utils/composer";
 import UIStore, { UI_EVENTS } from "../../../../src/stores/UIStore";
 import { Action } from "../../../../src/dispatcher/actions";
-import { SdkContextClass } from "../../../../src/contexts/SDKContext";
 
 jest.mock("../../../../src/components/views/rooms/wysiwyg_composer", () => ({
     SendWysiwygComposer: jest.fn().mockImplementation(() => <div data-testid="wysiwyg-composer" />),
@@ -62,7 +60,6 @@ const openStickerPicker = async (): Promise<void> => {
 const startVoiceMessage = async (): Promise<void> => {
     await act(async () => {
         await userEvent.click(screen.getByLabelText("More options"));
-        await userEvent.click(screen.getByLabelText("Voice Message"));
     });
 };
 

@@ -32,6 +32,7 @@ describe("MessageComposerButtons", () => {
         haveRecording: false,
         isStickerPickerOpen: false,
         menuPosition: undefined,
+        onRecordStartEndClick: () => {},
         setStickerPickerOpen: () => {},
         toggleButtonMenu: () => {},
     };

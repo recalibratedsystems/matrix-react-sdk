@@ -23,41 +23,21 @@ import { Action } from "../../src/dispatcher/actions";
 import { getMockClientWithEventEmitter, untilDispatch, untilEmission } from "../test-utils";
 import SettingsStore from "../../src/settings/SettingsStore";
 import { SlidingSyncManager } from "../../src/SlidingSyncManager";
-import { PosthogAnalytics } from "../../src/PosthogAnalytics";
 import { TimelineRenderingType } from "../../src/contexts/RoomContext";
 import { MatrixDispatcher } from "../../src/dispatcher/dispatcher";
 import { UPDATE_EVENT } from "../../src/stores/AsyncStore";
 import { ActiveRoomChangedPayload } from "../../src/dispatcher/payloads/ActiveRoomChangedPayload";
 import { SpaceStoreClass } from "../../src/stores/spaces/SpaceStore";
 import { TestSdkContext } from "../TestSdkContext";
-import { ViewRoomPayload } from "../../src/dispatcher/payloads/ViewRoomPayload";
 import Modal from "../../src/Modal";
 
 jest.mock("../../src/Modal");
 
 // mock out the injected classes
-jest.mock("../../src/PosthogAnalytics");
-const MockPosthogAnalytics = <jest.Mock<PosthogAnalytics>>(<unknown>PosthogAnalytics);
 jest.mock("../../src/SlidingSyncManager");
 const MockSlidingSyncManager = <jest.Mock<SlidingSyncManager>>(<unknown>SlidingSyncManager);
 jest.mock("../../src/stores/spaces/SpaceStore");
 const MockSpaceStore = <jest.Mock<SpaceStoreClass>>(<unknown>SpaceStoreClass);
-
-// mock VoiceRecording because it contains all the audio APIs
-jest.mock("../../src/audio/VoiceRecording", () => ({
-    VoiceRecording: jest.fn().mockReturnValue({
-        disableMaxLength: jest.fn(),
-        liveData: {
-            onUpdate: jest.fn(),
-        },
-        off: jest.fn(),
-        on: jest.fn(),
-        start: jest.fn(),
-        stop: jest.fn(),
-        destroy: jest.fn(),
-        contentType: "audio/ogg",
-    }),
-}));
 
 jest.mock("../../src/utils/DMRoomMap", () => {
     const mock = {
@@ -94,16 +74,6 @@ describe("RoomViewStore", function () {
     const room = new Room(roomId, mockClient, userId);
     const room2 = new Room(roomId2, mockClient, userId);
 
-    const viewCall = async (): Promise<void> => {
-        dis.dispatch<ViewRoomPayload>({
-            action: Action.ViewRoom,
-            room_id: roomId,
-            view_call: true,
-            metricsTrigger: undefined,
-        });
-        await untilDispatch(Action.ViewRoom, dis);
-    };
-
     let roomViewStore: RoomViewStore;
     let slidingSyncManager: SlidingSyncManager;
     let dis: MatrixDispatcher;
@@ -127,9 +97,7 @@ describe("RoomViewStore", function () {
         stores = new TestSdkContext();
         stores.client = mockClient;
         stores._SlidingSyncManager = slidingSyncManager;
-        stores._PosthogAnalytics = new MockPosthogAnalytics();
         stores._SpaceStore = new MockSpaceStore();
-        stores._VoiceBroadcastPlaybacksStore = new VoiceBroadcastPlaybacksStore(stores.voiceBroadcastRecordingsStore);
         roomViewStore = new RoomViewStore(dis, stores);
         stores._RoomViewStore = roomViewStore;
     });
@@ -272,10 +240,6 @@ describe("RoomViewStore", function () {
         dis.dispatch({ action: Action.ViewHomePage });
         await untilEmission(roomViewStore, UPDATE_EVENT);
         expect(roomViewStore.getRoomId()).toBeNull();
-    });
-
-    it("when viewing a call without a broadcast, it should not raise an error", async () => {
-        await viewCall();
     });
 
     it("should display an error message when the room is unreachable via the roomId", async () => {

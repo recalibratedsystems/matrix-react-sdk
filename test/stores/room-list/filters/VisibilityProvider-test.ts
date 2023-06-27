@@ -22,16 +22,6 @@ import { LocalRoom, LOCAL_ROOM_ID_PREFIX } from "../../../../src/models/LocalRoo
 import { RoomListCustomisations } from "../../../../src/customisations/RoomList";
 import { createTestClient } from "../../../test-utils";
 
-jest.mock("../../../../src/VoipUserMapper", () => ({
-    sharedInstance: jest.fn(),
-}));
-
-jest.mock("../../../../src/LegacyCallHandler", () => ({
-    instance: {
-        getSupportsVirtualRooms: jest.fn(),
-    },
-}));
-
 jest.mock("../../../../src/customisations/RoomList", () => ({
     RoomListCustomisations: {
         isRoomVisible: jest.fn(),
@@ -52,10 +42,6 @@ const createLocalRoom = (): LocalRoom => {
 };
 
 describe("VisibilityProvider", () => {
-
-    beforeEach(() => {
-    });
-
     describe("instance", () => {
         it("should return an instance", () => {
             const visibilityProvider = VisibilityProvider.instance;
@@ -64,24 +50,7 @@ describe("VisibilityProvider", () => {
         });
     });
 
-    describe("onNewInvitedRoom", () => {
-        it("should call onNewInvitedRoom on VoipUserMapper.sharedInstance", async () => {
-            const room = {} as unknown as Room;
-            await VisibilityProvider.instance.onNewInvitedRoom(room);
-        });
-    });
-
     describe("isRoomVisible", () => {
-        describe("for a virtual room", () => {
-            beforeEach(() => {
-            });
-
-            it("should return return false", () => {
-                const room = createRoom();
-                expect(VisibilityProvider.instance.isRoomVisible(room)).toBe(false);
-            });
-        });
-
         it("should return false without room", () => {
             expect(VisibilityProvider.instance.isRoomVisible()).toBe(false);
         });

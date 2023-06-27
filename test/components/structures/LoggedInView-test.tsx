@@ -38,7 +38,6 @@ describe("<LoggedInView />", () => {
         setPushRuleEnabled: jest.fn(),
         setPushRuleActions: jest.fn(),
     });
-
     const mockSdkContext = new TestSdkContext();
 
     const defaultProps = {

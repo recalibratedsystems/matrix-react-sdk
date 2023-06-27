@@ -19,7 +19,7 @@ import { mocked, MockedObject } from "jest-mock";
 import { ClientEvent, MatrixClient } from "matrix-js-sdk/src/client";
 import { Room, RoomEvent } from "matrix-js-sdk/src/models/room";
 import { MatrixEvent } from "matrix-js-sdk/src/models/event";
-import { EventType, RoomStateEvent } from "matrix-js-sdk/src/matrix";
+import { EventType, MatrixError, RoomStateEvent } from "matrix-js-sdk/src/matrix";
 import { MEGOLM_ALGORITHM } from "matrix-js-sdk/src/crypto/olmlib";
 import { fireEvent, render, screen, RenderResult } from "@testing-library/react";
 
@@ -34,6 +34,7 @@ import {
     filterConsole,
     mkRoomMemberJoinEvent,
     mkThirdPartyInviteEvent,
+    emitPromise,
 } from "../../test-utils";
 import { MatrixClientPeg } from "../../../src/MatrixClientPeg";
 import { Action } from "../../../src/dispatcher/actions";
@@ -51,10 +52,10 @@ import { DirectoryMember } from "../../../src/utils/direct-messages";
 import { createDmLocalRoom } from "../../../src/utils/dm/createDmLocalRoom";
 import { UPDATE_EVENT } from "../../../src/stores/AsyncStore";
 import { SdkContextClass, SDKContext } from "../../../src/contexts/SDKContext";
-import VoipUserMapper from "../../../src/VoipUserMapper";
 import WidgetUtils from "../../../src/utils/WidgetUtils";
 import { WidgetType } from "../../../src/widgets/WidgetType";
 import WidgetStore from "../../../src/stores/WidgetStore";
+import { ViewRoomErrorPayload } from "../../../src/dispatcher/payloads/ViewRoomErrorPayload";
 
 // Fake random strings to give a predictable snapshot for IDs
 jest.mock("matrix-js-sdk/src/randomstring", () => ({
@@ -92,8 +93,6 @@ describe("RoomView", () => {
         stores = new SdkContextClass();
         stores.client = cli;
         stores.rightPanelStore.useUnitTestClient(cli);
-
-        jest.spyOn(VoipUserMapper.sharedInstance(), "getVirtualRoomForRoom").mockResolvedValue(undefined);
     });
 
     afterEach(() => {
@@ -138,8 +137,8 @@ describe("RoomView", () => {
         return roomView;
     };
 
-    const renderRoomView = async (): Promise<ReturnType<typeof render>> => {
-        if (stores.roomViewStore.getRoomId() !== room.roomId) {
+    const renderRoomView = async (switchRoom = true): Promise<ReturnType<typeof render>> => {
+        if (switchRoom && stores.roomViewStore.getRoomId() !== room.roomId) {
             const switchedRoom = new Promise<void>((resolve) => {
                 const subFn = () => {
                     if (stores.roomViewStore.getRoomId()) {
@@ -225,6 +224,7 @@ describe("RoomView", () => {
     });
 
     it("updates url preview visibility on encryption state change", async () => {
+        room.getMyMembership = jest.fn().mockReturnValue("join");
         // we should be starting unencrypted
         expect(cli.isCryptoEnabled()).toEqual(false);
         expect(cli.isRoomEncrypted(room.roomId)).toEqual(false);
@@ -266,26 +266,6 @@ describe("RoomView", () => {
 
         room.getUnfilteredTimelineSet().resetLiveTimeline();
         expect(roomViewInstance.state.liveTimeline).not.toEqual(oldTimeline);
-    });
-
-    describe("with virtual rooms", () => {
-        it("checks for a virtual room on initial load", async () => {
-            const { container } = await renderRoomView();
-            expect(VoipUserMapper.sharedInstance().getVirtualRoomForRoom).toHaveBeenCalledWith(room.roomId);
-
-            // quick check that rendered without error
-            expect(container.querySelector(".mx_ErrorBoundary")).toBeFalsy();
-        });
-
-        it("checks for a virtual room on room event", async () => {
-            await renderRoomView();
-            expect(VoipUserMapper.sharedInstance().getVirtualRoomForRoom).toHaveBeenCalledWith(room.roomId);
-
-            cli.emit(ClientEvent.Room, room);
-
-            // called again after room event
-            expect(VoipUserMapper.sharedInstance().getVirtualRoomForRoom).toHaveBeenCalledTimes(2);
-        });
     });
 
     describe("for a local room", () => {
@@ -391,22 +371,18 @@ describe("RoomView", () => {
         });
     });
 
-    describe("when there is a RoomView", () => {
-        const widget1Id = "widget1";
-        const widget2Id = "widget2";
-        const otherUserId = "@other:example.com";
+    it("should show error view if failed to look up room alias", async () => {
+        const { asFragment, findByText } = await renderRoomView(false);
 
-        beforeEach(async () => {
-            jest.spyOn(WidgetUtils, "setRoomWidget");
-            const widgetStore = WidgetStore.instance;
-            await setupAsyncStoreWithClient(widgetStore, cli);
-            getRoomViewInstance();
+        defaultDispatcher.dispatch<ViewRoomErrorPayload>({
+            action: Action.ViewRoomError,
+            room_alias: "#addy:server",
+            room_id: null,
+            err: new MatrixError({ errcode: "M_NOT_FOUND" }),
         });
+        await emitPromise(stores.roomViewStore, UPDATE_EVENT);
 
-        const itShouldNotRemoveTheLastWidget = (): void => {
-            it("should not remove the last widget", (): void => {
-                expect(WidgetUtils.setRoomWidget).not.toHaveBeenCalledWith(room.roomId, widget2Id);
-            });
-        };
+        await findByText("Are you sure you're at the right place?");
+        expect(asFragment()).toMatchSnapshot();
     });
 });

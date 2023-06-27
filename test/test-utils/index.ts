@@ -21,7 +21,6 @@ export * from "./platform";
 export * from "./poll";
 export * from "./room";
 export * from "./test-utils";
-export * from "./call";
 export * from "./wrappers";
 export * from "./utilities";
 export * from "./date";

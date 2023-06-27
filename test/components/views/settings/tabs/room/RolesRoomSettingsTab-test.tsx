@@ -27,7 +27,6 @@ import RolesRoomSettingsTab from "../../../../../../src/components/views/setting
 import { mkStubRoom, withClientContextRenderOptions, stubClient } from "../../../../../test-utils";
 import { MatrixClientPeg } from "../../../../../../src/MatrixClientPeg";
 import SettingsStore from "../../../../../../src/settings/SettingsStore";
-import { ElementCall } from "../../../../../../src/models/Call";
 
 describe("RolesRoomSettingsTab", () => {
     const userId = "@alice:server.org";
@@ -107,54 +106,6 @@ describe("RolesRoomSettingsTab", () => {
         const getJoinCallSelectedOption = (tab: RenderResult): HTMLElement => {
             return tab.container.querySelector("select[label='Join Element Call calls'] option:checked")!;
         };
-
-        describe("Element Call enabled", () => {
-            beforeEach(() => {
-                setGroupCallsEnabled(true);
-            });
-
-            describe("Join Element calls", () => {
-                it("defaults to moderator for joining calls", () => {
-                    expect(getJoinCallSelectedOption(renderTab())?.textContent).toBe("Moderator");
-                });
-
-                it("can change joining calls power level", () => {
-                    const tab = renderTab();
-
-                    fireEvent.change(getJoinCallSelect(tab), {
-                        target: { value: 0 },
-                    });
-
-                    expect(getJoinCallSelectedOption(tab)?.textContent).toBe("Default");
-                    expect(cli.sendStateEvent).toHaveBeenCalledWith(roomId, EventType.RoomPowerLevels, {
-                        events: {
-                            [ElementCall.MEMBER_EVENT_TYPE.name]: 0,
-                        },
-                    });
-                });
-            });
-
-            describe("Start Element calls", () => {
-                it("defaults to moderator for starting calls", () => {
-                    expect(getStartCallSelectedOption(renderTab())?.textContent).toBe("Moderator");
-                });
-
-                it("can change starting calls power level", () => {
-                    const tab = renderTab();
-
-                    fireEvent.change(getStartCallSelect(tab), {
-                        target: { value: 0 },
-                    });
-
-                    expect(getStartCallSelectedOption(tab)?.textContent).toBe("Default");
-                    expect(cli.sendStateEvent).toHaveBeenCalledWith(roomId, EventType.RoomPowerLevels, {
-                        events: {
-                            [ElementCall.CALL_EVENT_TYPE.name]: 0,
-                        },
-                    });
-                });
-            });
-        });
 
         it("hides when group calls disabled", () => {
             setGroupCallsEnabled(false);

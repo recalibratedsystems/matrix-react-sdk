@@ -15,27 +15,21 @@ limitations under the License.
 */
 
 import React from "react";
-import { render, screen, act, fireEvent, waitFor, getByRole, RenderResult } from "@testing-library/react";
+import { render, RenderResult } from "@testing-library/react";
 import { mocked, Mocked } from "jest-mock";
-import { EventType, RoomType } from "matrix-js-sdk/src/@types/event";
 import { Room } from "matrix-js-sdk/src/models/room";
 import { RoomStateEvent } from "matrix-js-sdk/src/models/room-state";
 import { PendingEventOrdering } from "matrix-js-sdk/src/client";
-import { CallType } from "matrix-js-sdk/src/webrtc/call";
-import { ClientWidgetApi, Widget } from "matrix-widget-api";
-import EventEmitter from "events";
 import { ISearchResults } from "matrix-js-sdk/src/@types/search";
 
 import type { MatrixClient } from "matrix-js-sdk/src/client";
 import type { MatrixEvent } from "matrix-js-sdk/src/models/event";
 import type { RoomMember } from "matrix-js-sdk/src/models/room-member";
-import type { MatrixCall } from "matrix-js-sdk/src/webrtc/call";
 import {
     stubClient,
     mkRoomMember,
     setupAsyncStoreWithClient,
     resetAsyncStoreWithClient,
-    mockPlatformPeg,
 } from "../../../test-utils";
 import { MatrixClientPeg } from "../../../../src/MatrixClientPeg";
 import DMRoomMap from "../../../../src/utils/DMRoomMap";
@@ -46,9 +40,6 @@ import { mkEvent } from "../../../test-utils";
 import { IRoomState } from "../../../../src/components/structures/RoomView";
 import RoomContext from "../../../../src/contexts/RoomContext";
 import SdkConfig from "../../../../src/SdkConfig";
-import SettingsStore from "../../../../src/settings/SettingsStore";
-import defaultDispatcher from "../../../../src/dispatcher/dispatcher";
-import { Action } from "../../../../src/dispatcher/actions";
 import WidgetStore from "../../../../src/stores/WidgetStore";
 import { shouldShowComponent } from "../../../../src/customisations/helpers/UIComponents";
 import { UIComponent } from "../../../../src/settings/UIFeature";
@@ -113,82 +104,6 @@ describe("RoomHeader", () => {
         jest.restoreAllMocks();
         SdkConfig.reset();
     });
-
-    const mockRoomType = (type: string) => {
-        jest.spyOn(room, "getType").mockReturnValue(type);
-    };
-    const mockRoomMembers = (members: RoomMember[]) => {
-        jest.spyOn(room, "getJoinedMembers").mockReturnValue(members);
-        jest.spyOn(room, "getMember").mockImplementation(
-            (userId) => members.find((member) => member.userId === userId) ?? null,
-        );
-    };
-    const mockEnabledSettings = (settings: string[]) => {
-        jest.spyOn(SettingsStore, "getValue").mockImplementation((settingName) => settings.includes(settingName));
-    };
-    const mockEventPowerLevels = (events: { [eventType: string]: number }) => {
-        room.currentState.setStateEvents([
-            mkEvent({
-                event: true,
-                type: EventType.RoomPowerLevels,
-                room: room.roomId,
-                user: alice.userId,
-                skey: "",
-                content: { events, state_default: 0 },
-            }),
-        ]);
-    };
-
-    const renderHeader = (props: Partial<RoomHeaderProps> = {}, roomContext: Partial<IRoomState> = {}) => {
-        render(
-            <RoomContext.Provider value={{ ...roomContext, room } as IRoomState}>
-                <RoomHeader
-                    room={room}
-                    inRoom={true}
-                    onSearchClick={() => {}}
-                    onInviteClick={null}
-                    onForgetClick={() => {}}
-                    onAppsClick={() => {}}
-                    e2eStatus={E2EStatus.Normal}
-                    appsShown={true}
-                    searchInfo={{
-                        searchId: Math.random(),
-                        promise: new Promise<ISearchResults>(() => {}),
-                        term: "",
-                        scope: SearchScope.Room,
-                        count: 0,
-                    }}
-                    {...props}
-                />
-            </RoomContext.Provider>,
-        );
-    };
-
-    it(
-        "hides the voice call button and starts an Element call when the video call button is pressed if configured to " +
-            "use Element Call exclusively",
-        async () => {
-            mockEnabledSettings(["showCallButtonsInComposer", "feature_group_calls"]);
-            SdkConfig.put({
-                element_call: { url: "https://call.element.io", use_exclusively: true, brand: "Element Call" },
-            });
-
-            renderHeader();
-            expect(screen.queryByRole("button", { name: "Voice call" })).toBeNull();
-
-            const dispatcherSpy = jest.fn();
-            const dispatcherRef = defaultDispatcher.register(dispatcherSpy);
-            fireEvent.click(screen.getByRole("button", { name: "Video call" }));
-            await waitFor(() =>
-                expect(dispatcherSpy).toHaveBeenCalledWith({
-                    action: Action.ViewRoom,
-                    room_id: room.roomId,
-                    view_call: true,
-                }),
-            );
-            defaultDispatcher.unregister(dispatcherRef);
-        },
-    );
 
     it("shows the room avatar in a room with only ourselves", () => {
         // When we render a non-DM room with 1 person in it

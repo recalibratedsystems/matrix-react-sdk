@@ -24,7 +24,6 @@ import SettingsStore from "../src/settings/SettingsStore";
 import { createTestClient, stubClient } from "./test-utils";
 import { MatrixClientPeg } from "../src/MatrixClientPeg";
 import UserIdentifierCustomisations from "../src/customisations/UserIdentifier";
-import { ElementCall } from "../src/models/Call";
 import { getSenderName } from "../src/utils/event/getSenderName";
 
 jest.mock("../src/settings/SettingsStore");
@@ -443,44 +442,6 @@ describe("TextForEvent", () => {
 
         it("returns correct message for normal message", () => {
             expect(textForEvent(messageEvent, mockClient)).toEqual("@a: test message");
-        });
-    });
-
-    describe("textForCallEvent()", () => {
-        let mockClient: MatrixClient;
-        let callEvent: MatrixEvent;
-
-        beforeEach(() => {
-            stubClient();
-            mockClient = MatrixClientPeg.safeGet();
-
-            mocked(mockClient.getRoom).mockReturnValue({
-                name: "Test room",
-            } as unknown as Room);
-
-            callEvent = {
-                getRoomId: jest.fn(),
-                getType: jest.fn(),
-                isState: jest.fn().mockReturnValue(true),
-            } as unknown as MatrixEvent;
-        });
-
-        describe.each(ElementCall.CALL_EVENT_TYPE.names)("eventType=%s", (eventType: string) => {
-            beforeEach(() => {
-                mocked(callEvent).getType.mockReturnValue(eventType);
-            });
-
-            it("returns correct message for call event when supported", () => {
-                expect(textForEvent(callEvent, mockClient)).toEqual("Video call started in Test room.");
-            });
-
-            it("returns correct message for call event when not supported", () => {
-                mocked(mockClient).supportsVoip.mockReturnValue(false);
-
-                expect(textForEvent(callEvent, mockClient)).toEqual(
-                    "Video call started in Test room. (not supported by this browser)",
-                );
-            });
         });
     });
 

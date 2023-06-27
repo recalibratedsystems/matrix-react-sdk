@@ -389,67 +389,6 @@ exports[`KeyboardUserSettingsTab renders list of keyboard shortcuts 1`] = `
               <h3
                 class="mx_Heading_h3 mx_SettingsSubsectionHeading_heading"
               >
-                Calls
-              </h3>
-            </div>
-            <div
-              class="mx_SettingsSubsection_content"
-            >
-              <ul
-                class="mx_KeyboardShortcut_shortcutList"
-              >
-                <li
-                  class="mx_KeyboardShortcut_shortcutRow"
-                >
-                  Toggle microphone mute
-                  <div
-                    class="mx_KeyboardShortcut"
-                  >
-                    <kbd>
-                       
-                      Ctrl
-                       
-                    </kbd>
-                    +
-                    <kbd>
-                       
-                      d
-                       
-                    </kbd>
-                  </div>
-                </li>
-                <li
-                  class="mx_KeyboardShortcut_shortcutRow"
-                >
-                  Toggle webcam on/off
-                  <div
-                    class="mx_KeyboardShortcut"
-                  >
-                    <kbd>
-                       
-                      Ctrl
-                       
-                    </kbd>
-                    +
-                    <kbd>
-                       
-                      e
-                       
-                    </kbd>
-                  </div>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div
-            class="mx_SettingsSubsection"
-          >
-            <div
-              class="mx_SettingsSubsectionHeading"
-            >
-              <h3
-                class="mx_Heading_h3 mx_SettingsSubsectionHeading_heading"
-              >
                 Room
               </h3>
             </div>

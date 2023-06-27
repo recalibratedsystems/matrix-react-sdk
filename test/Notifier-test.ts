@@ -24,7 +24,6 @@ import { waitFor } from "@testing-library/react";
 import BasePlatform from "../src/BasePlatform";
 import Notifier from "../src/Notifier";
 import SettingsStore from "../src/settings/SettingsStore";
-import ToastStore from "../src/stores/ToastStore";
 import {
     createLocalNotificationSettingsIfNeeded,
     getLocalNotificationAccountDataEventType,

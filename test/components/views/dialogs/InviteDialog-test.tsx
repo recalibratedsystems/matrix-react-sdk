@@ -210,7 +210,6 @@ describe("InviteDialog", () => {
                 initialText="@localpart:server.tld"
             />,
         );
-
         await flushPromises();
         expect(screen.queryByText("@localpart:server.tld")).not.toBeInTheDocument();
     });

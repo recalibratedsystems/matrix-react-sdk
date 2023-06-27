@@ -70,10 +70,45 @@ describe("RoomPreviewCard", () => {
         await act(() => Promise.resolve()); // Allow effects to settle
     };
 
+    it("shows a beta pill on Jitsi video room invites", async () => {
+        jest.spyOn(room, "getType").mockReturnValue(RoomType.ElementVideo);
+        jest.spyOn(room, "getMyMembership").mockReturnValue("invite");
+        enabledFeatures = ["feature_video_rooms"];
+
+        await renderPreview();
+        screen.getByRole("button", { name: /beta/i });
+    });
+
+    it("shows a beta pill on Element video room invites", async () => {
+        jest.spyOn(room, "getType").mockReturnValue(RoomType.UnstableCall);
+        jest.spyOn(room, "getMyMembership").mockReturnValue("invite");
+        enabledFeatures = ["feature_video_rooms", "feature_element_call_video_rooms"];
+
+        await renderPreview();
+        screen.getByRole("button", { name: /beta/i });
+    });
+
     it("doesn't show a beta pill on normal invites", async () => {
         jest.spyOn(room, "getMyMembership").mockReturnValue("invite");
 
         await renderPreview();
         expect(screen.queryByRole("button", { name: /beta/i })).toBeNull();
+    });
+
+    it("shows instructions on Jitsi video rooms invites if video rooms are disabled", async () => {
+        jest.spyOn(room, "getType").mockReturnValue(RoomType.ElementVideo);
+        jest.spyOn(room, "getMyMembership").mockReturnValue("invite");
+
+        await renderPreview();
+        screen.getByText(/enable video rooms in labs/i);
+    });
+
+    it("shows instructions on Element video rooms invites if video rooms are disabled", async () => {
+        jest.spyOn(room, "getType").mockReturnValue(RoomType.UnstableCall);
+        jest.spyOn(room, "getMyMembership").mockReturnValue("invite");
+        enabledFeatures = ["feature_element_call_video_rooms"];
+
+        await renderPreview();
+        screen.getByText(/enable video rooms in labs/i);
     });
 });

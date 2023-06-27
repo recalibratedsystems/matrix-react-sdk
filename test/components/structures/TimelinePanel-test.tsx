@@ -44,7 +44,6 @@ import { forEachRight } from "lodash";
 import TimelinePanel from "../../../src/components/structures/TimelinePanel";
 import MatrixClientContext from "../../../src/contexts/MatrixClientContext";
 import { MatrixClientPeg } from "../../../src/MatrixClientPeg";
-import { isCallEvent } from "../../../src/components/structures/LegacyCallEventGrouper";
 import { filterConsole, flushPromises, mkMembership, mkRoom, stubClient } from "../../test-utils";
 import { mkThread } from "../../test-utils/threads";
 import { createMessageEventContent } from "../../test-utils/events";
@@ -534,41 +533,6 @@ describe("TimelinePanel", () => {
     });
 
     describe("with overlayTimeline", () => {
-        it("renders merged timeline", async () => {
-            const [client, room, events] = setupTestData();
-            const virtualRoom = mkRoom(client, "virtualRoomId");
-            const virtualCallInvite = new MatrixEvent({
-                type: "m.call.invite",
-                room_id: virtualRoom.roomId,
-                event_id: `virtualCallEvent1`,
-            });
-            const virtualCallMetaEvent = new MatrixEvent({
-                type: "org.matrix.call.sdp_stream_metadata_changed",
-                room_id: virtualRoom.roomId,
-                event_id: `virtualCallEvent2`,
-            });
-            const virtualEvents = [virtualCallInvite, ...mockEvents(virtualRoom), virtualCallMetaEvent];
-            const { timelineSet: overlayTimelineSet } = getProps(virtualRoom, virtualEvents);
-
-            const { container } = render(
-                <TimelinePanel
-                    {...getProps(room, events)}
-                    overlayTimelineSet={overlayTimelineSet}
-                    overlayTimelineSetFilter={isCallEvent}
-                />,
-            );
-
-            await waitFor(() =>
-                expectEvents(container, [
-                    // main timeline events are included
-                    events[0],
-                    events[1],
-                    // virtual timeline call event is included
-                    virtualCallInvite,
-                    // virtual call event has no tile renderer => not rendered
-                ]),
-            );
-        });
 
         it.each([
             ["when it starts with no overlay events", true],

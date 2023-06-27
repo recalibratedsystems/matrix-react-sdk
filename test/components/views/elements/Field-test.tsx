@@ -51,4 +51,61 @@ describe("Field", () => {
             expect(screen.getByRole("textbox")).not.toHaveAttribute("placeholder", "my placeholder");
         });
     });
+
+    describe("Feedback", () => {
+        it("Should mark the feedback as alert if invalid", async () => {
+            render(
+                <Field
+                    value=""
+                    validateOnFocus
+                    onValidate={() => Promise.resolve({ valid: false, feedback: "Invalid" })}
+                />,
+            );
+
+            // When invalid
+            await act(async () => {
+                fireEvent.focus(screen.getByRole("textbox"));
+            });
+
+            // Expect 'alert' role
+            expect(screen.queryByRole("alert")).toBeInTheDocument();
+        });
+
+        it("Should mark the feedback as status if valid", async () => {
+            render(
+                <Field
+                    value=""
+                    validateOnFocus
+                    onValidate={() => Promise.resolve({ valid: true, feedback: "Valid" })}
+                />,
+            );
+
+            // When valid
+            await act(async () => {
+                fireEvent.focus(screen.getByRole("textbox"));
+            });
+
+            // Expect 'status' role
+            expect(screen.queryByRole("status")).toBeInTheDocument();
+        });
+
+        it("Should mark the feedback as tooltip if custom tooltip set", async () => {
+            render(
+                <Field
+                    value=""
+                    validateOnFocus
+                    onValidate={() => Promise.resolve({ valid: true, feedback: "Valid" })}
+                    tooltipContent="Tooltip"
+                />,
+            );
+
+            // When valid or invalid and 'tooltipContent' set
+            await act(async () => {
+                fireEvent.focus(screen.getByRole("textbox"));
+            });
+
+            // Expect 'tooltip' role
+            expect(screen.queryByRole("tooltip")).toBeInTheDocument();
+        });
+    });
 });

@@ -11,14 +11,6 @@ exports[`RoomHeaderButtons-test.tsx should render 1`] = `
   />
   <div
     aria-current="false"
-    aria-label="Threads"
-    class="mx_AccessibleButton mx_RoomHeader_button mx_RightPanel_threadsButton"
-    data-testid="threadsButton"
-    role="button"
-    tabindex="0"
-  />
-  <div
-    aria-current="false"
     aria-label="Notifications"
     class="mx_AccessibleButton mx_RoomHeader_button mx_RightPanel_notifsButton"
     role="button"

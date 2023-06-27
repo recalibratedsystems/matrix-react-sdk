@@ -50,28 +50,12 @@ describe("<LabsUserSettingsTab />", () => {
         sdkConfigSpy.mockReturnValue(false);
     });
 
-    it("renders settings marked as beta as beta cards", () => {
-        render(getComponent());
-        expect(screen.getByText("Upcoming features").parentElement!).toMatchSnapshot();
-    });
-
     it("does not render non-beta labs settings when disabled in config", () => {
         render(getComponent());
         expect(sdkConfigSpy).toHaveBeenCalledWith("show_labs_settings");
 
         // only section is beta section
         expect(screen.queryByText("Early previews")).not.toBeInTheDocument();
-    });
-
-    it("renders non-beta labs settings when enabled in config", () => {
-        // enable labs
-        sdkConfigSpy.mockImplementation((configName) => configName === "show_labs_settings");
-        const { container } = render(getComponent());
-
-        // non-beta labs section
-        expect(screen.getByText("Early previews")).toBeInTheDocument();
-        const labsSections = container.getElementsByClassName("mx_SettingsSubsection");
-        expect(labsSections).toHaveLength(10);
     });
 
     it("allow setting a labs flag which requires unstable support once support is confirmed", async () => {

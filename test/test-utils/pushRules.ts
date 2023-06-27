@@ -151,6 +151,17 @@ export const DEFAULT_PUSH_RULES: IPushRules = Object.freeze({
             },
             {
                 conditions: [
+                    { kind: "event_match", key: "type", pattern: "im.vector.modular.widgets" },
+                    { kind: "event_match", key: "content.type", pattern: "jitsi" },
+                    { kind: "event_match", key: "state_key", pattern: "*" },
+                ],
+                actions: ["notify", { set_tweak: "highlight", value: false }],
+                rule_id: ".im.vector.jitsi",
+                default: true,
+                enabled: true,
+            },
+            {
+                conditions: [
                     { kind: "room_member_count", is: "2" },
                     { kind: "event_match", key: "type", pattern: "org.matrix.msc3381.poll.start" },
                 ],

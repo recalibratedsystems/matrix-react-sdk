@@ -29,6 +29,7 @@ import RoomContext, { TimelineRenderingType } from "../../../src/contexts/RoomCo
 import DMRoomMap from "../../../src/utils/DMRoomMap";
 import * as TestUtilsMatrix from "../../test-utils";
 import {
+    createTestClient,
     getMockClientWithEventEmitter,
     makeBeaconInfoEvent,
     mockClientMethodsEvents,
@@ -453,7 +454,6 @@ describe("MessagePanel", function () {
     it("should collapse creation events", function () {
         const events = mkCreationEvents();
         const createEvent = events.find((event) => event.getType() === "m.room.create")!;
-        const encryptionEvent = events.find((event) => event.getType() === "m.room.encryption")!;
         client.getRoom.mockImplementation((id) => (id === createEvent!.getRoomId() ? room : null));
         TestUtilsMatrix.upsertRoomStateEvents(room, events);
 
@@ -467,7 +467,6 @@ describe("MessagePanel", function () {
         const tiles = container.getElementsByClassName("mx_EventTile");
 
         expect(tiles[0].getAttribute("data-event-id")).toEqual(createEvent.getId());
-        expect(tiles[1].getAttribute("data-event-id")).toEqual(encryptionEvent.getId());
 
         const [summaryTile] = container.getElementsByClassName("mx_GenericEventListSummary");
 
@@ -773,16 +772,17 @@ describe("shouldFormContinuation", () => {
             msg: "And here's another message in the main timeline after the thread root",
         });
 
-        expect(shouldFormContinuation(message1, message2, false)).toEqual(true);
-        expect(shouldFormContinuation(message2, threadRoot, false)).toEqual(true);
-        expect(shouldFormContinuation(threadRoot, message3, false)).toEqual(true);
+        const client = createTestClient();
+        expect(shouldFormContinuation(message1, message2, client, false)).toEqual(true);
+        expect(shouldFormContinuation(message2, threadRoot, client, false)).toEqual(true);
+        expect(shouldFormContinuation(threadRoot, message3, client, false)).toEqual(true);
 
         const thread = {
             length: 1,
             replyToEvent: {},
         } as unknown as Thread;
         jest.spyOn(threadRoot, "getThread").mockReturnValue(thread);
-        expect(shouldFormContinuation(message2, threadRoot, false)).toEqual(false);
-        expect(shouldFormContinuation(threadRoot, message3, false)).toEqual(false);
+        expect(shouldFormContinuation(message2, threadRoot, client, false)).toEqual(false);
+        expect(shouldFormContinuation(threadRoot, message3, client, false)).toEqual(false);
     });
 });

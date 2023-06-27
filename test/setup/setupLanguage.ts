@@ -18,7 +18,7 @@ import fetchMock from "fetch-mock-jest";
 
 import * as languageHandler from "../../src/languageHandler";
 import en from "../../src/i18n/strings/en_EN.json";
-import de from "../../src/i18n/strings/de_DE.json";
+import ru from "../../src/i18n/strings/ru.json";
 
 const lv = {
     "Save": "Saglabāt",
@@ -64,9 +64,9 @@ fetchMock
             fileName: "en_EN.json",
             label: "English",
         },
-        de: {
-            fileName: "de_DE.json",
-            label: "German",
+        ru: {
+            fileName: "ru.json",
+            label: "Russian",
         },
         lv: {
             fileName: "lv.json",
@@ -74,7 +74,7 @@ fetchMock
         },
     })
     .get("end:en_EN.json", weblateToCounterpart(en))
-    .get("end:de_DE.json", weblateToCounterpart(de))
+    .get("end:ru.json", weblateToCounterpart(ru))
     .get("end:lv.json", weblateToCounterpart(lv));
 
 languageHandler.setLanguage("en");

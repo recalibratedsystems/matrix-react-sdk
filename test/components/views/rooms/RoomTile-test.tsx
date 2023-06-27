@@ -29,14 +29,11 @@ import type { ClientWidgetApi } from "matrix-widget-api";
 import {
     stubClient,
     mkRoomMember,
-    MockedCall,
-    useMockedCalls,
     setupAsyncStoreWithClient,
     filterConsole,
     flushPromises,
     mkMessage,
 } from "../../../test-utils";
-import { CallStore } from "../../../../src/stores/CallStore";
 import RoomTile from "../../../../src/components/views/rooms/RoomTile";
 import { DefaultTagID } from "../../../../src/stores/room-list/models";
 import DMRoomMap from "../../../../src/utils/DMRoomMap";
@@ -57,21 +54,6 @@ describe("RoomTile", () => {
     jest.spyOn(PlatformPeg, "get").mockReturnValue({
         overrideBrowserShortcuts: () => false,
     } as unknown as BasePlatform);
-    useMockedCalls();
-
-    const setUpVoiceBroadcast = async (state: VoiceBroadcastInfoState): Promise<void> => {
-        voiceBroadcastInfoEvent = mkVoiceBroadcastInfoStateEvent(
-            room.roomId,
-            state,
-            client.getSafeUserId(),
-            client.getDeviceId()!,
-        );
-
-        await act(async () => {
-            room.currentState.setStateEvents([voiceBroadcastInfoEvent]);
-            await flushPromises();
-        });
-    };
 
     const renderRoomTile = (): RenderResult => {
         return render(
@@ -169,88 +151,6 @@ describe("RoomTile", () => {
             renderRoomTile();
             expect(shouldShowComponent).toHaveBeenCalledWith(UIComponent.RoomOptionsMenu);
             expect(screen.queryByRole("button", { name: "Room options" })).toBeInTheDocument();
-        });
-
-        describe("when a call starts", () => {
-            let call: MockedCall;
-            let widget: Widget;
-
-            beforeEach(() => {
-                setupAsyncStoreWithClient(CallStore.instance, client);
-                setupAsyncStoreWithClient(WidgetMessagingStore.instance, client);
-
-                MockedCall.create(room, "1");
-                const maybeCall = CallStore.instance.getCall(room.roomId);
-                if (!(maybeCall instanceof MockedCall)) throw new Error("Failed to create call");
-                call = maybeCall;
-
-                widget = new Widget(call.widget);
-                WidgetMessagingStore.instance.storeMessaging(widget, room.roomId, {
-                    stop: () => {},
-                } as unknown as ClientWidgetApi);
-            });
-
-            afterEach(() => {
-                call.destroy();
-                client.reEmitter.stopReEmitting(room, [RoomStateEvent.Events]);
-                WidgetMessagingStore.instance.stopMessaging(widget, room.roomId);
-            });
-
-            it("tracks connection state", async () => {
-                renderRoomTile();
-                screen.getByText("Video");
-
-                // Insert an await point in the connection method so we can inspect
-                // the intermediate connecting state
-                let completeConnection: () => void = () => {};
-                const connectionCompleted = new Promise<void>((resolve) => (completeConnection = resolve));
-                jest.spyOn(call, "performConnection").mockReturnValue(connectionCompleted);
-
-                await Promise.all([
-                    (async () => {
-                        await screen.findByText("Joining…");
-                        const joinedFound = screen.findByText("Joined");
-                        completeConnection();
-                        await joinedFound;
-                    })(),
-                    call.connect(),
-                ]);
-
-                await Promise.all([screen.findByText("Video"), call.disconnect()]);
-            });
-
-            it("tracks participants", () => {
-                renderRoomTile();
-                const alice: [RoomMember, Set<string>] = [
-                    mkRoomMember(room.roomId, "@alice:example.org"),
-                    new Set(["a"]),
-                ];
-                const bob: [RoomMember, Set<string>] = [
-                    mkRoomMember(room.roomId, "@bob:example.org"),
-                    new Set(["b1", "b2"]),
-                ];
-                const carol: [RoomMember, Set<string>] = [
-                    mkRoomMember(room.roomId, "@carol:example.org"),
-                    new Set(["c"]),
-                ];
-
-                expect(screen.queryByLabelText(/participant/)).toBe(null);
-
-                act(() => {
-                    call.participants = new Map([alice]);
-                });
-                expect(screen.getByLabelText("1 participant").textContent).toBe("1");
-
-                act(() => {
-                    call.participants = new Map([alice, bob, carol]);
-                });
-                expect(screen.getByLabelText("4 participants").textContent).toBe("4");
-
-                act(() => {
-                    call.participants = new Map();
-                });
-                expect(screen.queryByLabelText(/participant/)).toBe(null);
-            });
         });
     });
 

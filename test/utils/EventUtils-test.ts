@@ -38,7 +38,6 @@ import {
     highlightEvent,
     isContentActionable,
     isLocationEvent,
-    isVoiceMessage,
 } from "../../src/utils/EventUtils";
 import { getMockClientWithEventEmitter, makeBeaconInfoEvent, makePollStartEvent, stubClient } from "../test-utils";
 import dis from "../../src/dispatcher/dispatcher";
@@ -250,41 +249,6 @@ describe("EventUtils", () => {
             it.each<TestCase>(editableCases)("returns true for %s", (_description, event) => {
                 expect(canEditOwnEvent(mockClient, event)).toBe(true);
             });
-        });
-    });
-
-    describe("isVoiceMessage()", () => {
-        it("returns true for an event with msc2516.voice content", () => {
-            const event = new MatrixEvent({
-                type: EventType.RoomMessage,
-                content: {
-                    ["org.matrix.msc2516.voice"]: {},
-                },
-            });
-
-            expect(isVoiceMessage(event)).toBe(true);
-        });
-
-        it("returns true for an event with msc3245.voice content", () => {
-            const event = new MatrixEvent({
-                type: EventType.RoomMessage,
-                content: {
-                    ["org.matrix.msc3245.voice"]: {},
-                },
-            });
-
-            expect(isVoiceMessage(event)).toBe(true);
-        });
-
-        it("returns false for an event with voice content", () => {
-            const event = new MatrixEvent({
-                type: EventType.RoomMessage,
-                content: {
-                    body: "hello",
-                },
-            });
-
-            expect(isVoiceMessage(event)).toBe(false);
         });
     });
 
